@@ -1,0 +1,82 @@
+{
+  "tags": [
+    "general",
+    "electronic_relaxation",
+    "structural_relaxation",
+    "spin",
+    "dos",
+    "write",
+    "hubbard_u",
+    "mixing",
+    "parallelization"
+  ],
+  "general": [
+    "istart",
+    "icharg",
+    "prec",
+    "isym",
+    "lreal",
+    "nbands",
+    "encut",
+    "kspacing",
+    "kgamma"
+  ],
+  "electronic_relaxation": [
+    "algo",
+    "ediff",
+    "nelmin",
+    "nelm",
+    "nelmdl",
+    "ismear",
+    "sigma",
+    "lasph"
+  ],
+  "structural_relaxation": [
+    "isif",
+    "ibrion",
+    "ediffg",
+    "potim",
+    "nsw"
+  ],
+  "spin": [
+    "ispin",
+    "magmom",
+    "lsorbit",
+    "lnoncollinear"
+  ],
+  "dos": [
+    "emin",
+    "emax",
+    "nedos"
+  ],
+  "write": [
+    "lorbit",
+    "lcharg",
+    "lvtot",
+    "lwave",
+    "lelf"
+  ],
+  "hubbard_u": [
+    "ldau",
+    "ldauprint",
+    "ldauu",
+    "ldauj",
+    "ldaul",
+    "lmaxmix"
+  ],
+  "mixing": [
+    "amix",
+    "bmix",
+    "amixmag",
+    "bmixmag",
+    "maxmix"
+  ],
+  "parallelization": [
+    "nsim",
+    "ncore",
+    "npar",
+    "kpar",
+    "lplane",
+    "lscalu"
+  ]
+}

@@ -5,17 +5,17 @@ import bs4
 @unittest.skip
 class TestVasprunXMLParserStatic(unittest.TestCase):
     def test_xml_to_soup_ungzipped(self):
-        from vasprun_xml_parser import parser
+        from waspy import vasprunxml_parser as parser
         self.assertIsInstance(parser.VasprunXMLParser._xml_to_soup('vasprun.xml'), bs4.BeautifulSoup)
 
     def test_xml_to_soup_gzipped(self):
-        from vasprun_xml_parser import parser
+        from waspy import vasprunxml_parser as parser
         self.assertIsInstance(parser.VasprunXMLParser._xml_to_soup('vasprun.xml.gz'), bs4.BeautifulSoup)
 
 
 class TestVasprunXMLParser(unittest.TestCase):
     def setUp(self):
-        from vasprun_xml_parser import parser
+        from waspy import vasprunxml_parser as parser
         self.vxparser = parser.VasprunXMLParser('vasprun.xml')
 
     def test_read_composition(self):
@@ -75,5 +75,3 @@ class TestVasprunXMLParser(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-    # tester = TestVasprunXMLParser()
-    # tester.test_read_stress_tensor()
