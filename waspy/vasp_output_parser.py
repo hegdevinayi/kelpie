@@ -7,7 +7,11 @@ import gzip
 
 class VasprunXMLParser:
     """Base class to parse relevant output from a vasprun.xml file."""
+
     def __init__(self, vasprun_xml_file='vasprun.xml'):
+        """
+        :param vasprun_xml_file (str): name of the vasprun.xml file (default='vasprun.xml')
+        """
         self.vasprun_xml_file = os.path.abspath(vasprun_xml_file)
         self.vasprun_soup = self._xml_to_soup(self.vasprun_xml_file)
 
@@ -93,6 +97,7 @@ class VasprunXMLParser:
         ionic_steps = self.vasprun_soup.modeling.find_all('calculation', recursive=False)
         entropy_dict = {}
         for n_ionic_step, ionic_step in enumerate(ionic_steps):
+            entropy = None
             final_scstep = ionic_step.find_all('scstep', recursive=False)[-1]
             for final_energy_block in final_scstep.find_all('energy', recursive=False):
                 for energy in final_energy_block.find_all('i', recursive=False):
@@ -109,6 +114,7 @@ class VasprunXMLParser:
         ionic_steps = self.vasprun_soup.modeling.find_all('calculation', recursive=False)
         free_energy_dict = {}
         for n_ionic_step, ionic_step in enumerate(ionic_steps):
+            free_energy = None
             final_scstep = ionic_step.find_all('scstep', recursive=False)[-1]
             for final_energy_block in final_scstep.find_all('energy', recursive=False):
                 for energy in final_energy_block.find_all('i', recursive=False):

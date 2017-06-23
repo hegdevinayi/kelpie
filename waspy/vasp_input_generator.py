@@ -7,6 +7,7 @@ from waspy.vasp_settings.incar import VASP_INCAR_TAGS
 
 
 class VASPInputGenerator:
+    """Base class to generate VASP input files for a given POSCAR file."""
 
     def _tag_value_formatter(self, value):
         if isinstance(value, list):
