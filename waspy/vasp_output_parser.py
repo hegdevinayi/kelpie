@@ -10,7 +10,8 @@ class VasprunXMLParser:
 
     def __init__(self, vasprun_xml_file='vasprun.xml'):
         """
-        :param vasprun_xml_file (str): name of the vasprun.xml file (default='vasprun.xml')
+        :param vasprun_xml_file: name of the vasprun.xml file (default='vasprun.xml')
+        :type vasprun_xml_file: str
         """
         self.vasprun_xml_file = os.path.abspath(vasprun_xml_file)
         self.vasprun_soup = self._xml_to_soup(self.vasprun_xml_file)
@@ -18,7 +19,8 @@ class VasprunXMLParser:
     @staticmethod
     def _xml_to_soup(xml_file, from_encoding='ISO-8859-1'):
         """Read contents from a vasprun.xml or vasprun.xml.gz file and convert it into soup.
-        :param from_encoding (str): encoding of the XML document (default='ISO-8859-1')
+        :param from_encoding: encoding of the XML document (default='ISO-8859-1')
+        :type from_encoding: str
         :return: a BeautifulSoup object of the XML data
         :rtype: bs4.BeautifulSoup
         """
@@ -75,7 +77,7 @@ class VasprunXMLParser:
     def read_scf_energies(self):
         """Read all the the energies in every ionic step.
         :return: {ionic_step_1: [e1, e2, e3, ...], ionic_step_2: [e1, e2, ...], ionic_step_3: ...}
-        :rtype: dict (key: int, value: list of float)
+        :rtype: dict(int, list(float))
         """
         ionic_steps = self.vasprun_soup.modeling.find_all('calculation', recursive=False)
         scf_energies = {}
@@ -92,7 +94,7 @@ class VasprunXMLParser:
     def read_entropy(self):
         """Read entropy at the end of each ionic step.
         :return: {ionic_step_1: entropy_1, ionic_step_2: entropy_2, ionic_step_3: ...}
-        :rtype: dict (key: int, value: float)
+        :rtype: dict(int, float)
         """
         ionic_steps = self.vasprun_soup.modeling.find_all('calculation', recursive=False)
         entropy_dict = {}
@@ -109,7 +111,7 @@ class VasprunXMLParser:
     def read_free_energy(self):
         """Read free energy at the end of each ionic step.
         :return: {ionic_step_1: free_energy_1, ionic_step_2: free_energy_2, ionic_step_3: ...}
-        :rtype: dict (key: int, value: float)
+        :rtype: dict(int, float)
         """
         ionic_steps = self.vasprun_soup.modeling.find_all('calculation', recursive=False)
         free_energy_dict = {}
@@ -126,7 +128,8 @@ class VasprunXMLParser:
     def read_forces(self):
         """Read forces on all atoms in the unit cell at the end of each ionic step.
         :return: {ionic_step_1: [[fx_1, fy_1, fz_1], [fx_2, fy_2, fz_2], ...], ionic_step_2: ...}
-        :rtype: dict (key: int, value: numpy.array of shape N_atomsx3)
+        :rtype: dict(int, numpy.array)
+                - numpy.array of shape (N_atoms, 3)
         """
         ionic_steps = self.vasprun_soup.modeling.find_all('calculation', recursive=False)
         forces_dict = {}
@@ -144,7 +147,8 @@ class VasprunXMLParser:
     def read_stress_tensor(self):
         """Read stress (in kbar) on the unit cell at the end of each ionic step.
         :return: {ionic_step_1: [[Sxx, Sxy, Sxz], [Syx, Syy, Syz], [Szx, Szy, Szz]], ionic_step_2: ...}
-        :rtype: dict (key: int, value: 3x3 numpy.array)
+        :rtype: dict(int, numpy.array)
+                - numpy.array of shape (3, 3)
         """
         ionic_steps = self.vasprun_soup.modeling.find_all('calculation', recursive=False)
         stress_tensor_dict = {}
@@ -162,7 +166,8 @@ class VasprunXMLParser:
     def read_lattice_vectors(self):
         """Read lattice vectors (in Angstrom) of the unit cell at the end of each ionic step.
         :return: {ionic_step_1: [[a11, a12, a13], [a21, a22, a23], [a31, a32, a33]], ionic_step_2: ...}
-        :rtype: dict (key: int, value: 3x3 numpy.array)
+        :rtype: dict(key, numpy.array)
+                - numpy.array of shape (3, 3)
         """
         ionic_steps = self.vasprun_soup.modeling.find_all('calculation', recursive=False)
         lattice_vectors_dict = {}
@@ -180,7 +185,7 @@ class VasprunXMLParser:
     def read_volume_of_cell(self):
         """Read the volume (in cubic Angstrom) of the unit cell at the end of each ionic step.
         :return: {ionic_step_1: float, ionic_step_2: float}
-        :rtype: dict (key: int, value: float)
+        :rtype: dict(int, float)
         """
         ionic_steps = self.vasprun_soup.modeling.find_all('calculation', recursive=False)
         volume_dict = {}
@@ -199,7 +204,7 @@ class VasprunXMLParser:
     def read_occupations(self):
         """Read occupation of every band at every k-point for each spin channel.
         :return: {'spin_1': {kpoint_1: {'band_energy': [band1, ...], 'occupation': [occ1, ...]}, 'kpoint_2': ...}}
-        :rtype: dict (key: str, value: {int: {str: list of float, str: list of float}})
+        :rtype: dict(str, dict(int, dict(str, list(float))))
         """
         final_ionic_step = self.vasprun_soup.modeling.find_all('calculation', recursive=False)[-1]
         eigenvalues = final_ionic_step.find('eigenvalues').set
@@ -215,3 +220,4 @@ class VasprunXMLParser:
                     occupations_dict[spin][kpoint]['band_energy'].append(be)
                     occupations_dict[spin][kpoint]['occupation'].append(occ)
         return occupations_dict
+

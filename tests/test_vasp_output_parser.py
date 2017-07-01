@@ -4,18 +4,21 @@ import bs4
 
 @unittest.skip
 class TestVasprunXMLParserStatic(unittest.TestCase):
+
     def test_xml_to_soup_ungzipped(self):
-        from waspy import vasprunxml_parser as parser
+        from waspy import vasp_output_parser as parser
         self.assertIsInstance(parser.VasprunXMLParser._xml_to_soup('vasprun.xml'), bs4.BeautifulSoup)
 
     def test_xml_to_soup_gzipped(self):
-        from waspy import vasprunxml_parser as parser
+        from waspy import vasp_output_parser as parser
         self.assertIsInstance(parser.VasprunXMLParser._xml_to_soup('vasprun.xml.gz'), bs4.BeautifulSoup)
 
 
 class TestVasprunXMLParser(unittest.TestCase):
+    """Base class to test waspy.vasp_output_parser.VasprunXMLParser class."""
+
     def setUp(self):
-        from waspy import vasprunxml_parser as parser
+        from waspy import vasp_output_parser as parser
         self.vxparser = parser.VasprunXMLParser('vasprun.xml')
 
     def test_read_composition(self):
@@ -75,3 +78,4 @@ class TestVasprunXMLParser(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+

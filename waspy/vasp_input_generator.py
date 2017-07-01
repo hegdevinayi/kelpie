@@ -1,13 +1,32 @@
 import os
 import sys
 import math
-import json
-from waspy import vasp_settings
-from waspy.vasp_settings.incar import VASP_INCAR_TAGS
+from waspy.vasp_structure import VaspStructure
+from waspy.vasp_settings.incar import VASP_INCAR_TAGS, VASP_SETTINGS
 
 
-class VASPInputGenerator:
+class VaspInputGenerator:
     """Base class to generate VASP input files for a given POSCAR file."""
+
+    def __init__(self,
+                 poscar_file='POSCAR',
+                 potcar_version='54',
+                 xc_functional='PBE',
+                 calculation_type='relaxation',
+                 additional_settings={}):
+        """
+        :param poscar_file: name/relative path of the POSCAR. Defaults to 'POSCAR'.
+        :type poscar_file: str
+        :param calculation_type: type of DFT calculation (relaxation/static/hse/...). Defaults to 'relaxation'.
+        :type calculation_type: str
+        :param additional_settings: VASP INCAR tags and corresponding values, in addition to the default ones.
+        :type additional_settings: dict(str, str or float or bool or list)
+        """
+        self.poscar_file = os.path.abspath(poscar_file)
+        self.vasp_structure = VaspStructure(self.poscar_file)
+        self.calculation_type = calculation_type
+        self.calculation_settings = VASP_SETTINGS[self.calculation_type]
+        self.calculation_settings.update(additional_settings)
 
     def _tag_value_formatter(self, value):
         if isinstance(value, list):
@@ -21,31 +40,17 @@ class VASPInputGenerator:
         else:
             return str(value)
 
+    def vasp_tag_format(self, tag, value):
+        """Format INCAR tags and corresponding values to be printed in the INCAR.
 
-def vasp_format(key, value):
-    return '{:14s} = {}'.format(key.upper(), value_formatter(value))
-
-
-def get_elements_list(poscar='POSCAR'):
-    """
-    """
-    with open(poscar, 'r') as fposcar:
-        poscar_data = fposcar.readlines()
-        elems = [e for e in poscar_data[5].strip().split()]
-    return elems
-
-
-def get_comp_dict(poscar='POSCAR'):
-    """
-    """
-    with open(poscar, 'r') as fposcar:
-        poscar_data = fposcar.readlines()
-        elems = [e for e in poscar_data[5].strip().split()]
-        natoms = [int(n) for n in poscar_data[6].strip().split()]
-    comp_dict = {}
-    for e, n in zip(elems, natoms):
-        comp_dict[e] = n
-    return comp_dict
+        :param tag: VASP INCAR tag
+        :type tag: str
+        :param value: value corresponding to the INCAR tag
+        :type value: str or bool or float or list(str or bool or float)
+        :return: formatted tag, value
+        :rtype: str
+        """
+        return '{:14s} = {}'.format(tag.upper(), self._tag_value_formatter(value))
 
 
 def write_potcar(poscar='POSCAR', version='54', xc='PBE', **ext_pot_sett):
@@ -127,3 +132,4 @@ def write_kpoints(poscar='POSCAR', scheme='auto', k_div=50, **ext_sett):
 
 def roundup(x):
     return int(math.ceil(x/10.))*10
+
