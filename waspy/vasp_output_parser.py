@@ -19,6 +19,7 @@ class VasprunXMLParser:
     @staticmethod
     def _xml_to_soup(xml_file, from_encoding='ISO-8859-1'):
         """Read contents from a vasprun.xml or vasprun.xml.gz file and convert it into soup.
+        
         :param from_encoding: encoding of the XML document (default='ISO-8859-1')
         :type from_encoding: str
         :return: a BeautifulSoup object of the XML data
@@ -39,6 +40,7 @@ class VasprunXMLParser:
 
     def read_composition(self):
         """Read the species and number of atoms for each species in the unit cell.
+        
         :return: unit cell composition dictionary {'element1': n1, 'element2': n2, ...}
         :rtype: dict
         """
@@ -54,6 +56,7 @@ class VasprunXMLParser:
 
     def read_atomslist(self):
         """Read the list of atoms in the unit cell.
+        
         :return: list of atoms ['atom1', 'atom1', 'atom2', 'atom2', 'atom2', ...]
         :rtype: list
         """
@@ -69,6 +72,7 @@ class VasprunXMLParser:
 
     def read_number_of_ionic_steps(self):
         """Read number of ionic steps in the VASP run.
+        
         :return: number of ionic steps
         :rtype: int
         """
@@ -76,6 +80,7 @@ class VasprunXMLParser:
 
     def read_scf_energies(self):
         """Read all the the energies in every ionic step.
+        
         :return: {ionic_step_1: [e1, e2, e3, ...], ionic_step_2: [e1, e2, ...], ionic_step_3: ...}
         :rtype: dict(int, list(float))
         """
@@ -93,6 +98,7 @@ class VasprunXMLParser:
 
     def read_entropy(self):
         """Read entropy at the end of each ionic step.
+        
         :return: {ionic_step_1: entropy_1, ionic_step_2: entropy_2, ionic_step_3: ...}
         :rtype: dict(int, float)
         """
@@ -110,6 +116,7 @@ class VasprunXMLParser:
 
     def read_free_energy(self):
         """Read free energy at the end of each ionic step.
+        
         :return: {ionic_step_1: free_energy_1, ionic_step_2: free_energy_2, ionic_step_3: ...}
         :rtype: dict(int, float)
         """
@@ -127,6 +134,7 @@ class VasprunXMLParser:
 
     def read_forces(self):
         """Read forces on all atoms in the unit cell at the end of each ionic step.
+        
         :return: {ionic_step_1: [[fx_1, fy_1, fz_1], [fx_2, fy_2, fz_2], ...], ionic_step_2: ...}
         :rtype: dict(int, numpy.array)
                 - numpy.array of shape (N_atoms, 3)
@@ -146,6 +154,7 @@ class VasprunXMLParser:
 
     def read_stress_tensor(self):
         """Read stress (in kbar) on the unit cell at the end of each ionic step.
+        
         :return: {ionic_step_1: [[Sxx, Sxy, Sxz], [Syx, Syy, Syz], [Szx, Szy, Szz]], ionic_step_2: ...}
         :rtype: dict(int, numpy.array)
                 - numpy.array of shape (3, 3)
@@ -165,6 +174,7 @@ class VasprunXMLParser:
 
     def read_lattice_vectors(self):
         """Read lattice vectors (in Angstrom) of the unit cell at the end of each ionic step.
+        
         :return: {ionic_step_1: [[a11, a12, a13], [a21, a22, a23], [a31, a32, a33]], ionic_step_2: ...}
         :rtype: dict(key, numpy.array)
                 - numpy.array of shape (3, 3)
@@ -184,6 +194,7 @@ class VasprunXMLParser:
 
     def read_volume_of_cell(self):
         """Read the volume (in cubic Angstrom) of the unit cell at the end of each ionic step.
+        
         :return: {ionic_step_1: float, ionic_step_2: float}
         :rtype: dict(int, float)
         """
@@ -203,6 +214,7 @@ class VasprunXMLParser:
 
     def read_occupations(self):
         """Read occupation of every band at every k-point for each spin channel.
+        
         :return: {'spin_1': {kpoint_1: {'band_energy': [band1, ...], 'occupation': [occ1, ...]}, 'kpoint_2': ...}}
         :rtype: dict(str, dict(int, dict(str, list(float))))
         """

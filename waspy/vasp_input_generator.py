@@ -2,7 +2,8 @@ import os
 import sys
 import math
 from waspy.vasp_structure import VaspStructure
-from waspy.vasp_settings.incar import VASP_INCAR_TAGS, VASP_SETTINGS
+from waspy.vasp_settings.incar import VASP_INCAR_TAGS, VASP_INCAR_SETTINGS
+from waspy.vasp_settings.potcar import VASP_RECO_POTCARS
 
 
 class VaspInputGenerator:
@@ -10,13 +11,14 @@ class VaspInputGenerator:
 
     def __init__(self,
                  poscar_file='POSCAR',
-                 potcar_version='54',
-                 xc_functional='PBE',
+                 potcar_settings={'version': '54', 'xc': 'PBE'},
                  calculation_type='relaxation',
                  additional_settings={}):
         """
         :param poscar_file: name/relative path of the POSCAR. Defaults to 'POSCAR'.
         :type poscar_file: str
+        :param potcar_settings: VASP POTCAR version, the xc functional to be used
+        :type potcar_settings: dict
         :param calculation_type: type of DFT calculation (relaxation/static/hse/...). Defaults to 'relaxation'.
         :type calculation_type: str
         :param additional_settings: VASP INCAR tags and corresponding values, in addition to the default ones.
@@ -24,9 +26,12 @@ class VaspInputGenerator:
         """
         self.poscar_file = os.path.abspath(poscar_file)
         self.vasp_structure = VaspStructure(self.poscar_file)
+        self.potcar_settings = potcar_settings
         self.calculation_type = calculation_type
-        self.calculation_settings = VASP_SETTINGS[self.calculation_type]
+        self.calculation_settings = VASP_INCAR_SETTINGS[self.calculation_type]
         self.calculation_settings.update(additional_settings)
+        self.POTCAR = self.get_vasp_potcar(self.potcar_settings)
+        self.INCAR = self.get_vasp_incar(self.calculation_type, self.calculation_settings)
 
     def _tag_value_formatter(self, value):
         if isinstance(value, list):
@@ -40,7 +45,7 @@ class VaspInputGenerator:
         else:
             return str(value)
 
-    def vasp_tag_format(self, tag, value):
+    def format_vasp_tag(self, tag, value):
         """Format INCAR tags and corresponding values to be printed in the INCAR.
 
         :param tag: VASP INCAR tag
@@ -52,38 +57,51 @@ class VaspInputGenerator:
         """
         return '{:14s} = {}'.format(tag.upper(), self._tag_value_formatter(value))
 
+    def get_vasp_potcar(self, potcar_settings={}):
+        """Construct the VASP POTCAR file for `self.POSCAR` using info in the `VASP_POTCAR_SETTINGS` variable
+        
+        :param potcar_settings: VASP POTCAR version, the xc functional to be used; updates `self.potcar_settings`
+        :type potcar_settings: dict
+        :return: VASP POTCAR file
+        :rtype: list(str)
+        """
+        vasp_potcar = []
+        self.potcar_settings.update(potcar_settings)
 
-def write_potcar(poscar='POSCAR', version='54', xc='PBE', **ext_pot_sett):
-    """
-    """
-    pot_sett_path = os.path.join(os.path.dirname(vasp_settings.__file__), 'potcar',\
-                    'pot_sett.yml')
-    with open(pot_sett_path, 'r') as fpot_sett:
-        pot_sett = yaml.safe_load(fpot_sett)
+        # concatenate all elemental POTCARs together
+        potcar_dir = VASP_RECO_POTCARS[self.potcar_settings['version']][self.potcar_settings['xc']]['path']
+        reco_pots = VASP_RECO_POTCARS[self.potcar_settings['version']][self.potcar_settings['xc']]['reco']
+        for element in self.vasp_structure.list_of_elements:
+            potcar_file = os.path.join(potcar_dir, reco_pots[element])
+            with open(potcar_file, 'r') as fr:
+                for line in fr.readlines():
+                    vasp_potcar.append(line)
+        return vasp_potcar
 
-    base_key = "_".join([version.lower(), xc.lower()])
-    if ext_pot_sett:
-        for element, potcar_label in ext_pot_sett.items():
-            pot_sett[base_key]['pot'].update({element: potcar_label})
-    pot_dir = pot_sett[base_key]['path']
-    elem_list = get_elements_list(poscar)
-    pot_path = os.path.join(os.path.dirname(poscar), 'POTCAR')
-    pot_enmax = 0.
-    with open(pot_path, 'w') as fpotcar:
-        for e in elem_list:
-            vasp_pot_path = os.path.join(pot_dir, pot_sett[base_key]['pot'][e],\
-                            'POTCAR')
-            with open(vasp_pot_path, 'r') as fvasp_pot:
-                for line in fvasp_pot:
-                    fpotcar.write(line)
-                    if 'ENMAX' in line:
-                        enmax = float(line.strip().split()[2].strip(';'))
-                        if pot_enmax < enmax:
-                            pot_enmax = enmax
-    sys.stdout.write('POTCAR written to {loc}\n'.format(loc=pot_path))
-    sys.stdout.write('ENMAX = {enmax:0.1f} eV\n'.format(enmax=pot_enmax))
-    sys.stdout.flush()
-    return pot_enmax
+    def get_vasp_incar(self, calculation_type='relaxation', additional_settings={}):
+        """
+        
+        :param calculation_type: type of DFT calculation (relaxation/static/hse/...). Defaults to 'relaxation'.
+        :type calculation_type: str
+        :param additional_settings: VASP INCAR tags and corresponding values, in addition to the default ones.
+        :type additional_settings: dict(str, str or float or bool or list)
+        :return: VASP INCAR file
+        """
+#     with open(pot_path, 'w') as fpotcar:
+#         for e in elem_list:
+#             vasp_pot_path = os.path.join(pot_dir, pot_sett[base_key]['pot'][e],\
+#                             'POTCAR')
+#             with open(vasp_pot_path, 'r') as fvasp_pot:
+#                 for line in fvasp_pot:
+#                     fpotcar.write(line)
+#                     if 'ENMAX' in line:
+#                         enmax = float(line.strip().split()[2].strip(';'))
+#                         if pot_enmax < enmax:
+#                             pot_enmax = enmax
+#     sys.stdout.write('POTCAR written to {loc}\n'.format(loc=pot_path))
+#     sys.stdout.write('ENMAX = {enmax:0.1f} eV\n'.format(enmax=pot_enmax))
+#     sys.stdout.flush()
+#     return pot_enmax
 
 
 def write_incar(poscar='POSCAR', calc='relaxation', stdout=False, **ext_sett):
@@ -113,19 +131,6 @@ def write_incar(poscar='POSCAR', calc='relaxation', stdout=False, **ext_sett):
     with open(inc_path, 'w') as fincar:
         fincar.write('{}'.format(incar))
     sys.stdout.write('INCAR written to {loc}\n'.format(loc=inc_path))
-    sys.stdout.flush()
-    return
-
-
-def write_kpoints(poscar='POSCAR', scheme='auto', k_div=50, **ext_sett):
-    """
-    """
-    kp_path = os.path.join(os.path.dirname(poscar), 'KPOINTS')
-    with open(kp_path, 'w') as fkp:
-        fkp.write('KPOINTS\n0\n')
-        if scheme=='auto':
-            fkp.write('Auto\n{k_div}\n'.format(k_div=k_div))
-    sys.stdout.write('KPOINTS written to {loc}\n'.format(loc=kp_path))
     sys.stdout.flush()
     return
 
