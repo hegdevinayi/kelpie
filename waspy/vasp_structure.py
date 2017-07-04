@@ -170,16 +170,27 @@ class VaspStructure:
         poscar = ''
 
         # system title
-        poscar += self.system_title
+        poscar += self.system_title + '\n'
 
         # scaling factor
-        poscar += '{:18.12f}'.format(self.scaling_factor)
+        poscar += '{:16.12f}\n'.format(self.scaling_factor)
 
         # lattice_vectors
-        for lv in self.lattice_vectors
-        # list of elements
-        # list of number of atoms
-        # coordinate system
-        # atomic coordinates
+        for lv in self.lattice_vectors:
+            poscar += '{:>16.12f}  {:>16.12f}  {:>16.12f}\n'.format(*lv)
 
+        # list of elements
+        poscar += ' '.join([':>4s'.format(e) for e in self.list_of_elements]) + '\n'
+
+        # list of number of atoms
+        poscar += ' '.join([':>4s'.format(str(n)) for n in self.list_of_number_of_atoms]) + '\n'
+
+        # coordinate system
+        poscar += '{}\n'.format(self.coordinate_system)
+
+        # atomic coordinates
+        for ac in self.list_of_atomic_coordinates:
+            poscar += '{:>16.12f}  {:>16.12f}  {:>16.12f}\n'.format(*ac)
+
+        return poscar
 
