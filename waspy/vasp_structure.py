@@ -165,3 +165,21 @@ class VaspStructure:
                 atomic_coordinates.append(coord)
         return atomic_coordinates
 
+    @property
+    def POSCAR(self):
+        poscar = ''
+
+        # system title
+        poscar += self.system_title
+
+        # scaling factor
+        poscar += '{:18.12f}'.format(self.scaling_factor)
+
+        # lattice_vectors
+        for lv in self.lattice_vectors
+        # list of elements
+        # list of number of atoms
+        # coordinate system
+        # atomic coordinates
+
+
