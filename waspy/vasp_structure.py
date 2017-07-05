@@ -165,32 +165,34 @@ class VaspStructure:
                 atomic_coordinates.append(coord)
         return atomic_coordinates
 
-    @property
-    def POSCAR(self):
-        poscar = ''
+    def get_vasp_poscar(self):
+        """Construct the VASP POSCAR.
 
+        :return: contents of a VASP 5 POSCAR file
+        :rtype: str
+        """
+        poscar = ''
         # system title
         poscar += self.system_title + '\n'
-
         # scaling factor
-        poscar += '{:16.12f}\n'.format(self.scaling_factor)
-
+        poscar += '{:18.14f}\n'.format(self.scaling_factor)
         # lattice_vectors
         for lv in self.lattice_vectors:
-            poscar += '{:>16.12f}  {:>16.12f}  {:>16.12f}\n'.format(*lv)
-
+            poscar += '{:>18.14f}  {:>18.14f}  {:>18.14f}\n'.format(*lv)
         # list of elements
-        poscar += ' '.join([':>4s'.format(e) for e in self.list_of_elements]) + '\n'
-
+        poscar += ' '.join(['{:>4s}'.format(e) for e in self.list_of_elements]) + '\n'
         # list of number of atoms
-        poscar += ' '.join([':>4s'.format(str(n)) for n in self.list_of_number_of_atoms]) + '\n'
-
+        poscar += ' '.join(['{:>4s}'.format(str(n)) for n in self.list_of_number_of_atoms]) + '\n'
         # coordinate system
         poscar += '{}\n'.format(self.coordinate_system)
-
         # atomic coordinates
         for ac in self.list_of_atomic_coordinates:
-            poscar += '{:>16.12f}  {:>16.12f}  {:>16.12f}\n'.format(*ac)
-
+            poscar += '{:>18.14f}  {:>18.14f}  {:>18.14f}\n'.format(*ac)
         return poscar
+
+    @property
+    def POSCAR(self):
+        """Structure in the VASP 5 POSCAR format."""
+        return self.get_vasp_poscar()
+
 
