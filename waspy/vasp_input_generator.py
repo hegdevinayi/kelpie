@@ -2,8 +2,7 @@ import os
 import sys
 import math
 import waspy
-from waspy.vasp_structure import VaspStructure
-from waspy.vasp_settings.incar import VASP_INCAR_TAGS, VASP_INCAR_SETTINGS
+from waspy.vasp_settings.incar import VASP_INCAR_TAGS
 from waspy.vasp_settings.potcar import VASP_RECO_POTCARS
 
 
@@ -16,46 +15,37 @@ class VaspInputGenerator:
     """Base class to generate VASP input files for a given POSCAR file."""
 
     def __init__(self,
-                 poscar_file='POSCAR',
-                 potcar_settings=None,
-                 calculation_type='relaxation',
-                 nondefault_calc_settings=None):
+                 vasp_structure,
+                 calculation_settings,
+                 write_location=None):
         """
-        :param poscar_file: name/relative path of the POSCAR. Defaults to 'POSCAR'.
-        :type poscar_file: str
-        :param potcar_settings: VASP POTCAR version, the xc functional to be used. Defaults to None.
-        :type potcar_settings: dict(str, str)
-        :param calculation_type: type of DFT calculation (relaxation/static/hse/...). Defaults to 'relaxation'.
-        :type calculation_type: str
-        :param nondefault_calc_settings: VASP INCAR tags and corresponding values, in addition to the default ones.
-        :type nondefault_calc_settings: dict(str, str or float or bool or list)
+        :param vasp_structure: VASP POSCAR converted into `waspy.vasp_structure.VaspStructure` object. Required.
+        :type vasp_structure: `waspy.vasp_structure.VaspStructure`
+        :param calculation_settings: VASP INCAR tags, values, and POTCAR choices. Required.
+        :type calculation_settings: dict(str, str or float or bool or list or dict)
+        :param write_location: where the VASP input files should be written.
+                               Defaults to the location of the `vasp_structure.poscar_file`.
+        :type write_location: str
         """
-        #: VASP POSCAR file containing the structure (only VASP 5 format currently supported)
-        self.poscar_file = os.path.abspath(poscar_file)
 
         #: `waspy.vasp_structure.VaspStructure` object containing the VASP POSCAR data
-        self.vasp_structure = VaspStructure(self.poscar_file)
+        self.vasp_structure = vasp_structure
 
-        #: VASP POTCAR release version, XC functional, recommendation for each element from `VASP_RECO_POTCARS`
-        self.potcar_settings = {'version': '54', 'xc': 'PBE'}
-        if potcar_settings is not None:
-            self.potcar_settings.update(potcar_settings)
+        #: VASP INCAR tags, values and POTCAR choices for generating input files.
+        self.calculation_settings = calculation_settings
+
+        #: where the VASP input files should be written
+        if write_location is None:
+            self.write_location = os.path.dirname(self.vasp_structure.poscar_file)
+        else:
+            self.write_location = write_location
 
         #: VASP elemental POTCAR files concatenated suitably for the given composition
         self.POTCAR = self.get_vasp_potcar()
 
-        #: type of DFT calculation: relaxation/static/hse/...
-        self.calculation_type = calculation_type
-
-        #: VASP INCAR tags, values corresponding to the type of DFT calculation read from `VASP_INCAR_SETTINGS`
-        self.calculation_settings = VASP_INCAR_SETTINGS[self.calculation_type]
-
-        # if custom settings are provided during object creation, update the settings dictionary
-        if nondefault_calc_settings is not None:
-            self.calculation_settings.update(nondefault_calc_settings)
-
-        # if calculation type is 'relaxation', set ENCUT depending on the highest ENMAX in the POTCAR
-        self.set_calculation_encut()
+        # if ENCUT is not set in calculation settings, set it manually
+        if self.calculation_settings.get('encut') is None:
+            self.set_calculation_encut()
 
         #: VASP INCAR for the settings in `self.calculation_settings`
         self.INCAR = self.get_vasp_incar()
@@ -84,26 +74,68 @@ class VaspInputGenerator:
         """
         return '{:14s} = {}'.format(tag.upper(), self.vasp_tag_value_formatter(value))
 
+    @staticmethod
+    def _concatenate_potcars(list_of_potcar_files):
+        """Concatenate a list of POTCAR files into a single POTCAR.
+
+        :param list_of_potcar_files: relative/absolute path of a list of VASP POTCAR files.
+        :type list_of_potcar_files: list(str)
+        :return: contents of the concatenated VASP POTCAR
+        :rtype: str
+
+        """
+        concatenated_potcar = ''
+        for potcar_file in list_of_potcar_files:
+            with open(potcar_file, 'r') as fr:
+                concatenated_potcar += fr.read()
+        return concatenated_potcar
+
     def get_vasp_potcar(self):
-        """Construct the VASP POTCAR for `self.POSCAR` using info in the `VASP_POTCAR_SETTINGS` variable
+        """Construct the VASP POTCAR for `self.POSCAR`.
+
+        If `self.calculation_settings['potcar_settings']['element_potcars'] dictionary:
+        (a) is empty: defaults are used from `waspy.vasp_settings.potcar.VASP_RECO_POTCARS`.
+        (b) has actual location of POTCARs as values to element keys, they are used directly.
+        (c) has VASP POTCAR tag (e.g. "Mn_pv") as values to element keys, corresponding POTCARs are used from the
+            local POTCAR library.
         
         :return: VASP POTCAR file
         :rtype: str
+        :raise VaspInputError: if POTCAR file for any element is not found.
         """
-        vasp_potcar = ''
+        potcar_settings = self.calculation_settings['potcar_settings']
+        element_potcars = potcar_settings.get('element_potcars', {})
 
-        # concatenate all elemental POTCARs together
-        potcar_dir = VASP_RECO_POTCARS[self.potcar_settings['version']][self.potcar_settings['xc']]['path']
-        reco_pots = VASP_RECO_POTCARS[self.potcar_settings['version']][self.potcar_settings['xc']]['reco']
+        list_of_potcars = []
         for element in self.vasp_structure.list_of_elements:
-            try:
-                potcar_file = os.path.join(potcar_dir, reco_pots[element], 'POTCAR')
-            except KeyError:
-                error_message = 'POTCAR for {} not found.'.format(element)
-                raise VaspInputError(error_message)
-            with open(potcar_file, 'r') as fr:
-                vasp_potcar += fr.read()
-        return vasp_potcar
+            element_potcar = element_potcars.get(element)
+
+            # if POTCAR choices are not specified in the calculation settings, use defaults.
+            if element_potcar is None:
+                potcar_dir = VASP_RECO_POTCARS[potcar_settings['version']][potcar_settings['xc']]['path']
+                reco_pots = VASP_RECO_POTCARS[potcar_settings['version']][potcar_settings['xc']]['reco']
+                try:
+                    potcar_file = os.path.join(potcar_dir, reco_pots[element], 'POTCAR')
+                except KeyError:
+                    error_message = 'POTCAR for {} not found.'.format(element)
+                    raise VaspInputError(error_message)
+                else:
+                    list_of_potcars.append(potcar_file)
+
+            # if actual location of the POTCARs are specified in the calculation settings, use them.
+            elif os.path.isfile(element_potcar):
+                list_of_potcars.append(element_potcar)
+
+            # if VASP POTCAR keys (e.g. "Li_sv", "Mn_pv") are specified, read them from the local POTCAR library.
+            else:
+                potcar_dir = VASP_RECO_POTCARS[potcar_settings['version']][potcar_settings['xc']]['path']
+                potcar_file = os.path.join(potcar_dir, element_potcar, 'POTCAR')
+                if os.path.isfile(potcar_file):
+                    list_of_potcars.append(potcar_file)
+                else:
+                    error_message = '{} file not found.'.format(potcar_file)
+                    raise VaspInputError(error_message)
+        return self._concatenate_potcars(list_of_potcars)
 
     @staticmethod
     def get_highest_enmax(vasp_potcar):
@@ -131,18 +163,20 @@ class VaspInputGenerator:
         return int(math.ceil(encut/10.))*10
 
     def set_calculation_encut(self):
-        """Update `self.calculation_settings['encut']` = 1.3*(highest ENMAX from `self.POTCAR`).
+        """Update `self.calculation_settings['encut']` = encut_scaling_factor*(highest ENMAX from `self.POTCAR`).
+
+        If `encut_scaling_factor` is not specified in calculation settings, 1.3 is used as default.
+        If `maximum_encut` is not specified in calculation settings, 520 (in eV) is used as default.
         """
-        if self.calculation_type == 'relaxation':
-            encut_scaling_factor = VASP_INCAR_SETTINGS[self.calculation_type].get('encut_scaling_factor', 1.3)
-            encut = encut_scaling_factor*self.get_highest_enmax(self.POTCAR)
-            if encut > 520:
-                encut = 520
-            self.calculation_settings.update({'encut': self.roundup_encut(encut)})
+        encut_scaling_factor = self.calculation_settings.get('encut_scaling_factor', 1.3)
+        maximum_encut = self.calculation_settings.get('maximum_encut', 520)
+        encut = self.roundup_encut(encut_scaling_factor*self.get_highest_enmax(self.POTCAR))
+        if encut > maximum_encut:
+            encut = maximum_encut
+        self.calculation_settings.update({'encut': encut})
 
     def get_vasp_incar(self):
-        """Construct the VASP INCAR file for `self.POSCAR`, `self.calculation_type` using global variables
-        `VASP_INCAR_SETTINGS` and `VASP_INCAR_TAGS`.
+        """Construct the VASP INCAR file for `self.POSCAR` using `self.calculation_settings`
 
         :return: VASP INCAR file
         :rtype: str
@@ -151,7 +185,7 @@ class VaspInputGenerator:
         for tag_block in VASP_INCAR_TAGS['tags']:
             vasp_incar += '### {} ###\n'.format(tag_block)
             for tag in VASP_INCAR_TAGS[tag_block]:
-                value = VASP_INCAR_SETTINGS[self.calculation_type].get(tag, None)
+                value = self.calculation_settings.get(tag)
                 if value is None:
                     continue
                 vasp_incar += self.format_vasp_tag(tag, value) + '\n'
@@ -182,34 +216,26 @@ class VaspInputGenerator:
             fw.write(file_contents)
         return
 
-    def write_vasp_input_files(self, location=''):
-        """Write VASP POSCAR, POTCAR, and INCAR files into the folder specified by `location`.
+    def write_vasp_input_files(self):
+        """Write VASP POSCAR, POTCAR, and INCAR files into the folder specified by `location`."""
+        try:
+            os.mkdir(self.write_location)
+        except FileExistsError:
+            pass
 
-        :param location: Folder to write VASP input files into. Creates one if it does not exist already. Defaults to
-                         the directory containing `self.poscar_file`.
-        :type location: str
-        """
-        if not location:
-            location = os.path.dirname(self.poscar_file)
-        else:
-            try:
-                os.mkdir(location)
-            except FileExistsError:
-                pass
-
-        sys.stdout.write('Writing VASP input files into "{}"... '.format(location))
+        sys.stdout.write('Writing VASP input files into "{}"... '.format(self.write_location))
         sys.stdout.flush()
 
         # write the POSCAR file
-        poscar_file = os.path.join(location, 'POSCAR')
+        poscar_file = os.path.join(self.write_location, 'POSCAR')
         self._write_vasp_input_file(self.vasp_structure.POSCAR, poscar_file)
 
         # write the POTCAR file
-        potcar_file = os.path.join(location, 'POTCAR')
+        potcar_file = os.path.join(self.write_location, 'POTCAR')
         self._write_vasp_input_file(self.POTCAR, potcar_file)
 
         # write the INCAR file
-        incar_file = os.path.join(location, 'INCAR')
+        incar_file = os.path.join(self.write_location, 'INCAR')
         self._write_vasp_input_file(self.INCAR, incar_file)
 
         sys.stdout.write('done.\n')

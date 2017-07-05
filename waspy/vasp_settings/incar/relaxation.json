@@ -22,5 +22,8 @@
   "lwave": false,
   "lelf": false,
   "kpar": 4,
-  "ncore": 12
+  "ncore": 12,
+  "encut_scaling_factor": 1.5,
+  "maximum_encut": 600,
+  "potcar_settings": {"version": "54", "xc": "PBE", "element_potcars": {}}
 }

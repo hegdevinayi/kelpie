@@ -23,5 +23,6 @@
   "lwave": false,
   "lelf": false,
   "kpar": 4,
-  "ncore": 12
+  "ncore": 12,
+  "potcar_settings": {"version": "54", "xc": "PBE", "element_potcars": {}}
 }

@@ -165,7 +165,7 @@ class VaspStructure:
                 atomic_coordinates.append(coord)
         return atomic_coordinates
 
-    def get_vasp_poscar(self):
+    def _get_vasp_poscar(self):
         """Construct the VASP POSCAR.
 
         :return: contents of a VASP 5 POSCAR file
@@ -193,6 +193,6 @@ class VaspStructure:
     @property
     def POSCAR(self):
         """Structure in the VASP 5 POSCAR format."""
-        return self.get_vasp_poscar()
+        return self._get_vasp_poscar()
 
 
