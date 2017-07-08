@@ -33,7 +33,7 @@ class VaspStructure:
         :rtype: list(str)
         :raise FileNotFoundError: if the POSCAR file is not found
         """
-        # sys.stdout.write('Reading POSCAR file {}... '.format(self.poscar_file))
+        # sys.stdout.write('Reading POSCAR file {}... '.format(self.structure_file))
         if not os.path.isfile(self.poscar_file):
             error_message = '{} file not found'.format(self.poscar_file)
             raise FileNotFoundError(error_message)

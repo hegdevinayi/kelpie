@@ -42,7 +42,7 @@ class TestVaspInputGenerator(unittest.TestCase):
     def test_write_vasp_input_files(self):
         import os
         self.vig = vasp_input_generator.VaspInputGenerator('sample_vasp_input/POSCAR.all_OK')
-        self.vig.write_vasp_input_files(location='write_vasp_input_files')
+        self.vig.write_vasp_input_files()
         self.assertTrue(os.path.isdir('write_vasp_input_files'))
         self.assertTrue(os.path.isfile('write_vasp_input_files/POSCAR'))
         self.assertTrue(os.path.isfile('write_vasp_input_files/POTCAR'))

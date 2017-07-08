@@ -24,7 +24,7 @@ class VaspInputGenerator:
         :param calculation_settings: VASP INCAR tags, values, and POTCAR choices. Required.
         :type calculation_settings: dict(str, str or float or bool or list or dict)
         :param write_location: where the VASP input files should be written.
-                               Defaults to the location of the `vasp_structure.poscar_file`.
+                               Defaults to the location of the `vasp_structure.structure_file`.
         :type write_location: str
         """
 
@@ -40,15 +40,9 @@ class VaspInputGenerator:
         else:
             self.write_location = write_location
 
-        #: VASP elemental POTCAR files concatenated suitably for the given composition
-        self.POTCAR = self.get_vasp_potcar()
-
         # if ENCUT is not set in calculation settings, set it manually
         if self.calculation_settings.get('encut') is None:
             self.set_calculation_encut()
-
-        #: VASP INCAR for the settings in `self.calculation_settings`
-        self.INCAR = self.get_vasp_incar()
 
     def vasp_tag_value_formatter(self, value):
         if isinstance(value, list):
@@ -89,6 +83,15 @@ class VaspInputGenerator:
             with open(potcar_file, 'r') as fr:
                 concatenated_potcar += fr.read()
         return concatenated_potcar
+
+    @property
+    def POTCAR(self):
+        """VASP POTCAR file for `self.vasp_structure` and `self.calculation settings`.
+
+        :return: contents of the VASP POTCAR file.
+        :rtype: str
+        """
+        return self.get_vasp_potcar()
 
     def get_vasp_potcar(self):
         """Construct the VASP POTCAR for `self.POSCAR`.
@@ -174,6 +177,15 @@ class VaspInputGenerator:
         if encut > maximum_encut:
             encut = maximum_encut
         self.calculation_settings.update({'encut': encut})
+
+    @property
+    def INCAR(self):
+        """VASP INCAR for the `self.vasp_structure` and `self.calculation_settings`.
+
+        :return: contents of the VASP INCAR file.
+        :rtype: str
+        """
+        return self.get_vasp_incar()
 
     def get_vasp_incar(self):
         """Construct the VASP INCAR file for `self.POSCAR` using `self.calculation_settings`

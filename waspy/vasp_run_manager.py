@@ -10,23 +10,23 @@ class VaspRunManager:
     """Base class to manage VASP runs."""
 
     def __init__(self,
-                 poscar_file='POSCAR',
+                 structure_file='POSCAR',
                  calculation_workflow='relaxation',
                  nondefault_calc_settings=None,
-                 run_location=None,
+                 run_directory=None,
                  host_resource='cori',
                  batch_scheduler='slurm',
                  nondefault_scheduler_settings=None):
         """
-        :param poscar_file: location of the VASP POSCAR. Defaults to 'POSCAR'.
-        :type poscar_file: str
+        :param structure_file: location of the VASP POSCAR. Defaults to 'POSCAR'.
+        :type structure_file: str
         :param calculation_workflow: type of DFT calculation (relaxation/static/hse/...). Defaults to 'relaxation'.
         :type calculation_workflow: str
         :param nondefault_calc_settings: nondefault INCAR, POTCAR settings for each calculation type. Defaults to None.
                                          - e.g. {"relaxation": {"ediff": 1E-8, "nsw": 80}, "static": {"sigma": 0.1}}
         :type nondefault_calc_settings: dict(str, dict(str, str or float or bool or list))
-        :param run_location: directory to run all the calculations in. Defaults to the location of the `structure_file`.
-        :type run_location: str
+        :param run_directory: directory to run all the calculations in. Defaults to the location of the `structure_file`.
+        :type run_directory: str
         :param batch_scheduler: slurm/PBS/... Defaults to "slurm". (Only slurm implemented so far.)
         :type batch_scheduler:
         :param nondefault_scheduler_settings: tag, values to go into the batch script. Tags:
@@ -39,10 +39,10 @@ class VaspRunManager:
         """
 
         #: VASP POSCAR file containing the structure (only VASP 5 format currently supported).
-        self.poscar_file = os.path.abspath(poscar_file)
+        self.structure_file = os.path.abspath(structure_file)
 
         #: `waspy.vasp_structure.VaspStructure` object containing VASP POSCAR data.
-        self.vasp_structure = vasp_structure.VaspStructure(poscar_file=self.poscar_file)
+        self.vasp_structure = vasp_structure.VaspStructure(poscar_file=self.structure_file)
 
         #: type of DFT calculation: relaxation/static/hse/...
         if calculation_workflow not in ['relaxation', 'static']:
@@ -55,10 +55,10 @@ class VaspRunManager:
         self.nondefault_calc_settings = nondefault_calc_settings
 
         #: relative/absolute path to run VASP calculations.
-        if run_location is None:
-            self.run_location = os.path.dirname(self.poscar_file)
+        if run_directory is None:
+            self.run_location = os.path.dirname(self.structure_file)
         else:
-            self.run_location = run_location
+            self.run_location = run_directory
 
         #: compute resource where the calculations are being run: cori/edison/quest/...
         self.host_resource = host_resource
@@ -91,7 +91,25 @@ class VaspRunManager:
 
 
     def vasp_relaxation_workflow(self):
-        """Workflow for performing a relaxation run using VASP. A final SCF is always run."""
+        """Workflow for performing a relaxation run using VASP. A final SCF is always run.
+        
+        1- if run_dir does not exist, create it
+        2- if it does exist, delete all files in the run_dir except the structure_file, if present
+        3- initiate the relaxation workflow: 
+            A- while vasprun.xml is not completely converged
+                I- generate VASP (relaxation) input files for the structure (CONTCAR if present, structure_file otherwise)
+                II- run VASP
+                III- parse the vasprun.xml file and add the CalculationData object to the workflow
+                IV- create a "relaxation_{yyyy}{mm}{dd}{hh}{mm}{ss}" folder and move all files (except structure_file) to it
+                    (if it is completely converged, write into "relaxation_final" directory?)
+            B- generate VASP (static) input files for the final CONTCAR
+            C- run VASP
+            D- if the static run does not converge,
+            E- delete all files and restart static; exit if unsuccessful on second attempt
+            F- write the RelaxationWorkflowData.pickle file with all the necessary data
+        4- touch empty file called DONE if everything is done?
+        """
+            
         # read in calculation settings
         # update with nondefault calculation settings, if any
         # generate_VASP_input
@@ -104,7 +122,18 @@ class VaspRunManager:
         # do static
 
     def vasp_static_workflow(self):
-        """Workflow for performing a single SCF calculation using VASP."""
+        """Workflow for performing a single SCF calculation using VASP.
+        1- if run_dir does not exist, create it
+        2- if it does exist, delete all files in the run_dir except structure_file, if present
+        3- initiate the static workflow:
+            A- generate VASP (static) input files for structure_file
+            B- run VASP
+            C- if the static run does not converge,
+            D- delete all files and restart static; exit if unsuccessful on second attempt
+            E- write the StaticWorkflowData.pickle file with all the necessary data
+        4- touch empty file called DONE if everything is done?
+        """
+
         # read in calculation settings
         # update with nondefault calculation settings, if any
         # generate_VASP_input
