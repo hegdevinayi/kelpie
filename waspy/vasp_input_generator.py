@@ -11,7 +11,7 @@ class VaspInputError(Exception):
     pass
 
 
-class VaspInputGenerator:
+class VaspInputGenerator(object):
     """Base class to generate VASP input files for a given POSCAR file."""
 
     def __init__(self,
@@ -101,7 +101,7 @@ class VaspInputGenerator:
         (b) has actual location of POTCARs as values to element keys, they are used directly.
         (c) has VASP POTCAR tag (e.g. "Mn_pv") as values to element keys, corresponding POTCARs are used from the
             local POTCAR library.
-        
+
         :return: VASP POTCAR file
         :rtype: str
         :raise VaspInputError: if POTCAR file for any element is not found.

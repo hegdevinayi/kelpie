@@ -6,7 +6,7 @@ from waspy.vasp_settings.incar import DEFAULT_VASP_INCAR_SETTINGS
 from waspy.batch_scheduler_settings import DEFAULT_BATCH_SCHEDULER_SETTINGS
 
 
-class VaspRunManager:
+class VaspRunManager(object):
     """Base class to manage VASP runs."""
 
     def __init__(self,

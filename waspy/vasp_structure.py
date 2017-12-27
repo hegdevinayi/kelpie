@@ -7,7 +7,7 @@ class VaspStructureError(Exception):
     pass
 
 
-class VaspStructure:
+class VaspStructure(object):
     """Base class to store VASP POSCAR data."""
 
     def __init__(self, poscar_file='POSCAR'):
@@ -28,7 +28,7 @@ class VaspStructure:
     def _read_poscar_file(self):
         """
         Read a structure in the VASP 5 format.
-        
+
         :return: lines in the POSCAR file, with linebreaks stripped ['title', '1.0', ...]
         :rtype: list(str)
         :raise FileNotFoundError: if the POSCAR file is not found
@@ -45,7 +45,7 @@ class VaspStructure:
     def get_system_title(self):
         """
         Parse, literally, the system title (line 1).
-        
+
         :return: system title
         :rtype: str
         """
@@ -54,7 +54,7 @@ class VaspStructure:
     def get_scaling_factor(self):
         """
         Parse the scaling factor for the structure (line 2).
-        
+
         :return: scaling factor
         :rtype: float
         :raise ValueError: if the scaling factor cannot be converted to float
@@ -71,7 +71,7 @@ class VaspStructure:
     def get_lattice_vectors(self):
         """
         Parse the lattice vectors of the structure (lines 3-5).
-        
+
         :return: lattice vectors [[a11, a12, a13], [a21, a22, a23], ...]
         :rtype: list(list(float))
                 - outer list of shape (3, 3)
@@ -91,7 +91,7 @@ class VaspStructure:
     def get_list_of_elements(self):
         """
         Parse the elements in the compound (line 6).
-        
+
         :return: list of elements
         :rtype: list(str)
         :raise VaspStructureError: if any of the elements contains only integers
@@ -108,7 +108,7 @@ class VaspStructure:
     def get_list_of_number_of_atoms(self):
         """
         Parse the number of atoms of each element in the structure (line 7).
-        
+
         :return: list of number of atoms
         :rtype: list(int)
         :raise ValueError: if any of the number of atoms cannot be converted to int
@@ -125,7 +125,7 @@ class VaspStructure:
     def get_coordinate_system(self):
         """
         Are the atomic positions in direct/fractional or cartesian coordinates? (line 8)
-        
+
         :return: 'Direct' or 'Cartesian'
         :rtype: str
         :raise NotImplementedError: for Selective Dynamics
@@ -147,7 +147,7 @@ class VaspStructure:
     def get_list_of_atomic_coordinates(self):
         """
         Parse all the atomic coordinates (line 9-(9+number of atoms)).
-        
+
         :return: list of atomic coordinates [[c11, c12, c13], [c21, c22, c23], ...]
         :rtype: list(list(float))
                 - outer list of shape (N_atoms, 3)
