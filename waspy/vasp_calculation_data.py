@@ -2,33 +2,86 @@ import os
 from waspy import vasp_output_parser
 
 
-class VaspCalculationData:
+class VaspCalculationError(Exception):
+    pass
+
+
+class VaspCalculationData(object):
     """Base class to store output data from a VASP calculation."""
 
     def __init__(self, vasprun_xml_file='vasprun.xml'):
         """
-
         :param vasprun_xml_file:
         """
+        self._vasprun_xml_file = None
         self.vasprun_xml_file = vasprun_xml_file
-        vxparser = vasp_output_parser.VasprunXMLParser(self.vasprun_xml_file)
 
-        self.run_timestamp = vxparser.read_run_timestamp()
-        self.composition_info = vxparser.read_composition_information()
-        self.list_of_atoms = vxparser.read_list_of_atoms()
-        self.number_of_ionic_steps = vxparser.read_number_of_ionic_steps()
-        self.scf_energies = vxparser.read_scf_energies()
-        self.entropies = vxparser.read_entropies()
-        self.free_energies = vxparser.read_free_energies()
-        self.lattice_vectors = vxparser.read_lattice_vectors()
-        self.cell_volumes = vxparser.read_cell_volumes()
-        self.fermi_energy = vxparser.read_fermi_energy()
-        self.band_occupations = vxparser.read_band_occupations()
-        self.scf_looptimes = vxparser.read_scf_looptimes()
+    @property
+    def vasprun_xml_file(self):
+        return self._vasprun_xml_file
+
+    @vasprun_xml_file.setter
+    def vasprun_xml_file(self, vasprun_xml_file):
+        if os.path.isfile(vasprun_xml_file):
+            self._vasprun_xml_file = os.path.abspath(vasprun_xml_file)
+        else:
+            error_msg = 'VASP output file {} not found'.format(vasprun_xml_file)
+            raise VaspCalculationError(error_msg)
+
+    @property
+    def vxparser(self):
+        return vasp_output_parser.VasprunXMLParser(self.vasprun_xml_file)
+
+    @property
+    def run_timestamp(self):
+        return self.vxparser.read_run_timestamp()
+
+    @property
+    def composition_info(self):
+        return self.vxparser.read_composition_information()
+
+    @property
+    def list_of_atoms(self):
+        return self.vxparser.read_list_of_atoms()
+
+    @property
+    def number_of_ionic_steps(self):
+        return self.vxparser.read_number_of_ionic_steps()
+
+    @property
+    def scf_energies(self):
+        return self.vxparser.read_scf_energies()
+
+    @property
+    def entropies(self):
+        return self.vxparser.read_entropies()
+
+    @property
+    def free_energies(self):
+        return self.vxparser.read_free_energies()
+
+    @property
+    def lattice_vectors(self):
+        return self.vxparser.read_lattice_vectors()
+
+    @property
+    def cell_volumes(self):
+        return self.vxparser.read_cell_volumes()
+
+    @property
+    def fermi_energy(self):
+        return self.vxparser.read_fermi_energy()
+
+    @property
+    def band_occupations(self):
+        return self.vxparser.read_band_occupations()
+
+    @property
+    def scf_looptimes(self):
+        return self.vxparser.read_scf_looptimes()
 
     @property
     def total_runtime(self):
-        """Total calculation runtime in seconds."""
         return self._calculate_total_runtime(self.scf_looptimes)
 
     @staticmethod
