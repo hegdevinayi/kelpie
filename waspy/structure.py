@@ -220,7 +220,7 @@ class Structure(object):
     def list_of_species(self):
         if self.atoms is None:
             return []
-        return sorted([atom.species for atom in self.atoms])
+        return sorted(set([atom.species for atom in self.atoms]))
 
     def _get_vasp_poscar(self):
         """Construct the VASP POSCAR.
