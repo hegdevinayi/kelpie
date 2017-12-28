@@ -1,198 +1,209 @@
-import os
-import sys
+import numpy
+from waspy.data import STD_ATOMIC_WEIGHTS
 
 
-class VaspStructureError(Exception):
-    """Base class for error(s) in a VASP POSCAR file."""
+class AtomError(Exception):
+    """Base class for error(s) in Atom objects."""
     pass
 
 
-class VaspStructure(object):
-    """Base class to store VASP POSCAR data."""
+class Atom(object):
+    """Base class to store an atom."""
 
-    def __init__(self, poscar_file='POSCAR'):
-        """
-        :param poscar_file: name/relative path of the POSCAR (default='POSCAR')
-        :type poscar_file: str
-        """
-        self.poscar_file = os.path.abspath(poscar_file)
-        self.poscar_lines = self._read_poscar_file()
-        self.system_title = self.get_system_title()
-        self.scaling_factor = self.get_scaling_factor()
-        self.lattice_vectors = self.get_lattice_vectors()
-        self.list_of_elements = self.get_list_of_elements()
-        self.list_of_number_of_atoms = self.get_list_of_number_of_atoms()
-        self.coordinate_system = self.get_coordinate_system()
-        self.list_of_atomic_coordinates = self.get_list_of_atomic_coordinates()
+    def __init__(self,
+                 coordinates=None,
+                 species=None)
+        """Constructor.
 
-    def _read_poscar_file(self):
+        :param coordinates: Iterable of the x, y, z coordinates of the atom (fractional or cartesian)
+        :param species: Elemental species at the site.
         """
-        Read a structure in the VASP 5 format.
+        self._coordinates = None
+        self.coordinates = coordinates
 
-        :return: lines in the POSCAR file, with linebreaks stripped ['title', '1.0', ...]
-        :rtype: list(str)
-        :raise FileNotFoundError: if the POSCAR file is not found
-        """
-        # sys.stdout.write('Reading POSCAR file {}... '.format(self.structure_file))
-        if not os.path.isfile(self.poscar_file):
-            error_message = '{} file not found'.format(self.poscar_file)
-            raise FileNotFoundError(error_message)
-        with open(self.poscar_file, 'r') as fr:
-            poscar_lines = [line.strip() for line in fr.readlines()]
-            # sys.stdout.write('done.\n')
-            return poscar_lines
-
-    def get_system_title(self):
-        """
-        Parse, literally, the system title (line 1).
-
-        :return: system title
-        :rtype: str
-        """
-        return self.poscar_lines[0]
-
-    def get_scaling_factor(self):
-        """
-        Parse the scaling factor for the structure (line 2).
-
-        :return: scaling factor
-        :rtype: float
-        :raise ValueError: if the scaling factor cannot be converted to float
-        """
-        try:
-            scaling_factor = float(self.poscar_lines[1])
-        except ValueError:
-            error_message = '[Error] Scaling factor (Line 2) should be floating point.\n'
-            sys.stdout.write(error_message)
-            raise
-        else:
-            return scaling_factor
-
-    def get_lattice_vectors(self):
-        """
-        Parse the lattice vectors of the structure (lines 3-5).
-
-        :return: lattice vectors [[a11, a12, a13], [a21, a22, a23], ...]
-        :rtype: list(list(float))
-                - outer list of shape (3, 3)
-        :raise ValueError: if any lattice vector component cannot be converted to float
-        """
-        lattice_vectors = []
-        try:
-            for line in self.poscar_lines[2:5]:
-                lattice_vectors.append([float(a) for a in line.split()])
-        except ValueError:
-            error_message = '[Error] All lattice vector components (Lines 3-5) should be floating point.\n'
-            sys.stdout.write(error_message)
-            raise
-        else:
-            return lattice_vectors
-
-    def get_list_of_elements(self):
-        """
-        Parse the elements in the compound (line 6).
-
-        :return: list of elements
-        :rtype: list(str)
-        :raise VaspStructureError: if any of the elements contains only integers
-        """
-        elements_list = self.poscar_lines[5].split()
-        # check if all are legitimate elements?
-        # ^ may be too restrictive; for now, allow "artificial elements"
-        if any([e.isdigit() for e in elements_list]):
-            error_message = '[Error] Check list of elements (Line 6). [Use VASP 5 format.]\n'
-            sys.stdout.write(error_message)
-            raise VaspStructureError
-        return elements_list
-
-    def get_list_of_number_of_atoms(self):
-        """
-        Parse the number of atoms of each element in the structure (line 7).
-
-        :return: list of number of atoms
-        :rtype: list(int)
-        :raise ValueError: if any of the number of atoms cannot be converted to int
-        """
-        try:
-            list_of_number_of_atoms = [int(n) for n in self.poscar_lines[6].split()]
-        except ValueError:
-            error_message = '[Error] Number of atoms of each species (Line 7) should be integers.\n'
-            sys.stdout.write(error_message)
-            raise
-        else:
-            return list_of_number_of_atoms
-
-    def get_coordinate_system(self):
-        """
-        Are the atomic positions in direct/fractional or cartesian coordinates? (line 8)
-
-        :return: 'Direct' or 'Cartesian'
-        :rtype: str
-        :raise NotImplementedError: for Selective Dynamics
-        :raise VaspStructureError: if coordinate system is not VASP-recognizable
-        """
-        coordinate_system = self.poscar_lines[7]
-        first_char = coordinate_system.lower()[0]  # VASP only recognizes the first character
-        if first_char == 'd':
-            return 'Direct'
-        elif first_char in ['c', 'k']:
-            return 'Cartesian'
-        elif first_char == 's':
-            error_message = 'Selective dynamics I/O handling currently not implemented.\n'
-            raise NotImplementedError(error_message)
-        else:
-            error_message = '[Error] Coordinate system (Line 8) can only be direct or cartesian.\n'
-            raise VaspStructureError(error_message)
-
-    def get_list_of_atomic_coordinates(self):
-        """
-        Parse all the atomic coordinates (line 9-(9+number of atoms)).
-
-        :return: list of atomic coordinates [[c11, c12, c13], [c21, c22, c23], ...]
-        :rtype: list(list(float))
-                - outer list of shape (N_atoms, 3)
-        :raise ValueError: is any atomic coordinate component cannot be converted to float
-        """
-        atomic_coordinates = []
-        for line in self.poscar_lines[8:8+sum(self.list_of_number_of_atoms)]:
-            try:
-                coord = [float(c) for c in line.split()[:3]]
-            except ValueError:
-                error_message = '[Error] Check the atomic coordinates block (Line 9-).\n'
-                sys.stdout.write(error_message)
-                raise
-            else:
-                atomic_coordinates.append(coord)
-        return atomic_coordinates
-
-    def _get_vasp_poscar(self):
-        """Construct the VASP POSCAR.
-
-        :return: contents of a VASP 5 POSCAR file
-        :rtype: str
-        """
-        poscar = ''
-        # system title
-        poscar += self.system_title + '\n'
-        # scaling factor
-        poscar += '{:18.14f}\n'.format(self.scaling_factor)
-        # lattice_vectors
-        for lv in self.lattice_vectors:
-            poscar += '{:>18.14f}  {:>18.14f}  {:>18.14f}\n'.format(*lv)
-        # list of elements
-        poscar += ' '.join(['{:>4s}'.format(e) for e in self.list_of_elements]) + '\n'
-        # list of number of atoms
-        poscar += ' '.join(['{:>4s}'.format(str(n)) for n in self.list_of_number_of_atoms]) + '\n'
-        # coordinate system
-        poscar += '{}\n'.format(self.coordinate_system)
-        # atomic coordinates
-        for ac in self.list_of_atomic_coordinates:
-            poscar += '{:>18.14f}  {:>18.14f}  {:>18.14f}\n'.format(*ac)
-        return poscar
+        self._species = None
+        self.species = species
 
     @property
-    def POSCAR(self):
-        """Structure in the VASP 5 POSCAR format."""
-        return self._get_vasp_poscar()
+    def coordinates(self):
+        return self._coordinates
+
+    @coordinates.setter
+    def coordinates(self, coordinates):
+        if coordinates is None:
+            error_message = 'Atomic coordinates must be specified'
+            raise AtomError(error_message)
+        try:
+            coord = numpy.array(coordinates, dtype='float')
+        except ValueError:
+            error_message = 'Could not convert atomic coordinates into float'
+            raise AtomError(error_message)
+        else:
+            if numpy.shape(coord) != (3,):
+                error_message = 'coordinates must be a 1x3-shaped iterable'
+                raise AtomError(error_message)
+            for i in range(3):
+                if numpy.isnan(coord[i]):
+                    error_message = 'Atom coordinate ({}) is None'.format(i)
+                    raise AtomError(error_message)
+        self._coordinates = coord.tolist()
+
+    @property
+    def species(self):
+        return self._species
+
+    @species.setter
+    def species(self, species):
+        if species is None:
+            error_message = 'Atomic species at the site must be specified'
+            raise AtomError(error_message)
+        try:
+            if not any([species.startswith(e) for e in STD_ATOMIC_WEIGHTS]):
+                error_message = 'Species label must start with a known element symbol'
+                raise AtomError(error_message)
+        except AttributeError:
+            error_message = 'Atomic species input must be a String'
+            raise AtomError(error_message)
+        else:
+            self._species = species
+
+    @property
+    def x(self):
+        return self._coordinates[0]
+
+    @property
+    def y(self):
+        return self._coordinates[1]
+
+    @property
+    def z(self):
+        return self._coordinates[2]
+
+    @property
+    def element(self):
+        return self._species
+
+
+class StructureError(Exception):
+    """Base class for error(s) in Structure objects."""
+    pass
+
+
+class Structure(object):
+    """Base class to store a crystal structure."""
+
+    def __init__(self,
+                 scaling_constant=None,
+                 lattice_vectors=None,
+                 atoms=None,
+                 coord_system=None,
+                 comment=None):
+        """Constructor.
+
+        :param scaling_constant: Float to scale all the lattice vectors with.
+        :param lattice_vectors: A 3x3 Iterable of Float with the cell vectors.
+        :param atoms: List of `waspy.Atom' objects.
+        :param coord_system: String specifying the coordinate system ("Cartesian"/"Direct")
+        """
+
+        self._scaling_constant = None
+        self.scaling_constant = scaling_constant
+
+        self._lattice_vectors = None
+        self.lattice_vectors = lattice_vectors
+
+        self._atoms = None
+        self.atoms = atoms
+
+        self._coord_system = None
+        self.coord_system = coord_system
+
+        self._comment = None
+        self.comment = comment
+
+    @property
+    def scaling_constant(self):
+        return self._scaling_constant
+
+    @scaling_constant.setter
+    def scaling_constant(self, scaling_constant):
+        if scaling_constant is None:
+            return
+        else:
+            try:
+                self._scaling_constant = float(scaling_constant)
+            except ValueError:
+                error_message = 'Could not convert scaling constant to float'
+                raise StructureError(error_message)
+
+    @property
+    def lattice_vectors(self):
+        return self._lattice_vectors
+
+    @lattice_vectors.setter
+    def lattice_vectors(self, lattice_vectors):
+        if lattice_vectors is None:
+            return
+        try:
+            lv = numpy.array(lattice_vectors, dtype='float')
+        except ValueError:
+            error_message = 'Could not convert lattice vector component(s) into float'
+            raise StructureError(error_message)
+        else:
+            if numpy.shape(lv) != (3, 3):
+                error_message = '`lattice_vectors` must be a 3x3-shaped iterable'
+                raise StructureError(error_message)
+            for i in range(3):
+                for j in range(3):
+                    if numpy.isnan(lv[i][j]):
+                        error_message = 'Lattice vector component ({}, {}) is None'.format(i, j)
+                        raise StructureError(error_message)
+            self._lattice_vectors = lv.tolist()
+
+    @property
+    def atoms(self):
+        return self._atoms
+
+    @atoms.setter
+    def atoms(self, atoms):
+        if atoms is None:
+            return
+        if not all([isinstance(atom, Atom) for atom in atoms]):
+            error_message = '`atoms` must be an iterable of `waspy.Atom` objects'
+            raise StructureError(error_message)
+        self._atoms = atoms
+
+    def add_atom(self, atom):
+        if not isinstance(atom, Atom):
+            error_message = '`atoms` must be an iterable of `waspy.Atom` objects'
+            raise StructureError(error_message)
+        self._atoms.append(atom)
+
+    @property
+    def coord_system(self):
+        return self._coord_system
+
+    @coord_system.setter
+    def coord_system(self, coord_system):
+        if coord_system is None:
+            return
+        elif coord_system.lower() in ['direct', 'crystal', 'fractional']:
+            self._coord_system = 'Direct'
+        elif coord_system.lower() in ['cartesian', 'angstrom']:
+            self._coord_system = 'Cartesian'
+        else:
+            error_message = 'Coordinate system not recognized. Options: Direct/Crystal/Fractional or Cartesian/Angstrom'
+            raise StructureError(error_message)
+
+    @property
+    def comment(self):
+        return self._comment
+
+    @comment.setter
+    def comment(self, comment):
+        if comment is None:
+            comment = 'Comment'
+        self._comment = comment
+
 
 
