@@ -1,5 +1,5 @@
 import os
-from waspy import vasp_output_parser
+from waspy.vasp_output_parser import VasprunXMLParser
 
 
 class VaspCalculationError(Exception):
@@ -23,14 +23,14 @@ class VaspCalculationData(object):
     @vasprun_xml_file.setter
     def vasprun_xml_file(self, vasprun_xml_file):
         if os.path.isfile(vasprun_xml_file):
-            self._vasprun_xml_file = os.path.abspath(vasprun_xml_file)
+            self._vasprun_xml_file = vasprun_xml_file
         else:
             error_msg = 'VASP output file {} not found'.format(vasprun_xml_file)
             raise VaspCalculationError(error_msg)
 
     @property
     def vxparser(self):
-        return vasp_output_parser.VasprunXMLParser(self.vasprun_xml_file)
+        return VasprunXMLParser(self.vasprun_xml_file)
 
     @property
     def run_timestamp(self):
@@ -89,7 +89,7 @@ class VaspCalculationData(object):
         """Sum up all SCF looptimes to calculate the total runtime in seconds.
 
         :param scf_looptimes: loop times for each SCF in every ionic step.
-                              - see `vasp_output_parser.VasprunXMLParser.read_scf_looptimes()`
+                              - see `VasprunXMLParser.read_scf_looptimes()`
         :type scf_looptimes: dict(int, list(float))
         :return: total runtime for the calculation in seconds.
         :rtype: float
