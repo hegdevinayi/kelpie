@@ -12,7 +12,7 @@ class Atom(object):
 
     def __init__(self,
                  coordinates=None,
-                 species=None)
+                 species=None):
         """Constructor.
 
         :param coordinates: Iterable of the x, y, z coordinates of the atom (fractional or cartesian)
@@ -95,15 +95,15 @@ class Structure(object):
     def __init__(self,
                  scaling_constant=None,
                  lattice_vectors=None,
+                 coordinate_system=None,
                  atoms=None,
-                 coord_system=None,
                  comment=None):
         """Constructor.
 
         :param scaling_constant: Float to scale all the lattice vectors with.
         :param lattice_vectors: A 3x3 Iterable of Float with the cell vectors.
         :param atoms: List of `waspy.Atom' objects.
-        :param coord_system: String specifying the coordinate system ("Cartesian"/"Direct")
+        :param coordinate_system: String specifying the coordinate system ("Cartesian"/"Direct")
         """
 
         self._scaling_constant = None
@@ -112,11 +112,11 @@ class Structure(object):
         self._lattice_vectors = None
         self.lattice_vectors = lattice_vectors
 
+        self._coordinate_system = None
+        self.coordinate_system = coordinate_system
+
         self._atoms = None
         self.atoms = atoms
-
-        self._coord_system = None
-        self.coord_system = coord_system
 
         self._comment = None
         self.comment = comment
@@ -161,12 +161,29 @@ class Structure(object):
             self._lattice_vectors = lv.tolist()
 
     @property
+    def coordinate_system(self):
+        return self._coordinate_system
+
+    @coordinate_system.setter
+    def coordinate_system(self, coordinate_system):
+        if coordinate_system is None:
+            return
+        elif coordinate_system.lower() in ['direct', 'crystal', 'fractional']:
+            self._coordinate_system = 'Direct'
+        elif coordinate_system.lower() in ['cartesian', 'angstrom']:
+            self._coordinate_system = 'Cartesian'
+        else:
+            error_message = 'Coordinate system not recognized. Options: Direct/Crystal/Fractional or Cartesian/Angstrom'
+            raise StructureError(error_message)
+
+    @property
     def atoms(self):
         return self._atoms
 
     @atoms.setter
     def atoms(self, atoms):
         if atoms is None:
+            self._atoms = []
             return
         if not all([isinstance(atom, Atom) for atom in atoms]):
             error_message = '`atoms` must be an iterable of `waspy.Atom` objects'
@@ -175,25 +192,9 @@ class Structure(object):
 
     def add_atom(self, atom):
         if not isinstance(atom, Atom):
-            error_message = '`atoms` must be an iterable of `waspy.Atom` objects'
+            error_message = '`atom` must be a `waspy.Atom` object'
             raise StructureError(error_message)
         self._atoms.append(atom)
-
-    @property
-    def coord_system(self):
-        return self._coord_system
-
-    @coord_system.setter
-    def coord_system(self, coord_system):
-        if coord_system is None:
-            return
-        elif coord_system.lower() in ['direct', 'crystal', 'fractional']:
-            self._coord_system = 'Direct'
-        elif coord_system.lower() in ['cartesian', 'angstrom']:
-            self._coord_system = 'Cartesian'
-        else:
-            error_message = 'Coordinate system not recognized. Options: Direct/Crystal/Fractional or Cartesian/Angstrom'
-            raise StructureError(error_message)
 
     @property
     def comment(self):
@@ -205,5 +206,33 @@ class Structure(object):
             comment = 'Comment'
         self._comment = comment
 
+def _get_vasp_poscar(poscar_lines):
+    """Construct the VASP POSCAR.
 
+    :return: contents of a VASP 5 POSCAR file
+    :rtype: str
+    """
+    poscar = ''
+    # system title
+    poscar += self.system_title + '\n'
+    # scaling factor
+    poscar += '{:18.14f}\n'.format(self.scaling_constant)
+    # lattice_vectors
+    for lv in self.lattice_vectors:
+        poscar += '{:>18.14f}  {:>18.14f}  {:>18.14f}\n'.format(*lv)
+    # list of elements
+    poscar += ' '.join(['{:>4s}'.format(e) for e in self.list_of_elements]) + '\n'
+    # list of number of atoms
+    poscar += ' '.join(['{:>4s}'.format(str(n)) for n in self.list_of_number_of_atoms]) + '\n'
+    # coordinate system
+    poscar += '{}\n'.format(self.coordinate_system)
+    # atomic coordinates
+    for ac in self.list_of_atomic_coordinates:
+        poscar += '{:>18.14f}  {:>18.14f}  {:>18.14f}\n'.format(*ac)
+    return poscar
+
+@property
+def POSCAR(self):
+    """Structure in the VASP 5 POSCAR format."""
+    return self._get_vasp_poscar()
 
