@@ -1,5 +1,5 @@
 import unittest
-from waspy import vasp_structure as vs
+from waspy import structure as vs
 
 
 class TestVaspStructure(unittest.TestCase):
@@ -31,7 +31,7 @@ class TestVaspStructure(unittest.TestCase):
     def test_get_list_of_elements(self):
         self.assertIsInstance(self.vstruct_ok.list_of_elements, list)
         self.assertEqual(self.vstruct_ok.list_of_elements, ['Li', '1Mn', 'O'])
-        with self.assertRaises(vs.VaspStructureError):
+        with self.assertRaises(vs.StructureError):
             vs.VaspStructure(poscar_file='sample_vasp_input/POSCAR.list_of_elements_error')
 
     def test_get_list_of_number_of_atoms(self):
@@ -44,7 +44,7 @@ class TestVaspStructure(unittest.TestCase):
         self.assertEqual(self.vstruct_ok.coordinate_system, 'Direct')
         with self.assertRaises(NotImplementedError):
             vs.VaspStructure(poscar_file='sample_vasp_input/POSCAR.selective_dynamics_error')
-        with self.assertRaises(vs.VaspStructureError):
+        with self.assertRaises(vs.StructureError):
             vs.VaspStructure(poscar_file='sample_vasp_input/POSCAR.coordinate_system_error')
 
     def test_get_list_of_atomic_coordinates(self):

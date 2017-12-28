@@ -1,5 +1,5 @@
 import os
-from waspy import vasp_structure
+from waspy import structure
 from waspy.vasp_input_generator import VaspInputGenerator
 from waspy.vasp_output_parser import VasprunXMLParser
 from waspy.vasp_settings.incar import DEFAULT_VASP_INCAR_SETTINGS
@@ -42,7 +42,7 @@ class VaspRunManager(object):
         self.structure_file = os.path.abspath(structure_file)
 
         #: `waspy.vasp_structure.VaspStructure` object containing VASP POSCAR data.
-        self.vasp_structure = vasp_structure.VaspStructure(poscar_file=self.structure_file)
+        self.vasp_structure = structure.VaspStructure(poscar_file=self.structure_file)
 
         #: type of DFT calculation: relaxation/static/hse/...
         if calculation_workflow not in ['relaxation', 'static']:
@@ -76,7 +76,7 @@ class VaspRunManager(object):
         """Run a single VASP calculation of type `calc_type`.
 
         :param structure: initial crystal structure.
-        :type structure: `waspy.vasp_structure.VaspStructure`
+        :type structure: `waspy.structure.VaspStructure`
         :param location: path where VASP calculation must be run.
         :type: str
         :param calc_type: type of DFT calculation: relaxation/static/hse (primarily for reading in settings)
