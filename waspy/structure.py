@@ -1,4 +1,5 @@
 import numpy
+from collections import defaultdict
 from waspy.data import STD_ATOMIC_WEIGHTS
 
 
@@ -100,7 +101,7 @@ class Structure(object):
                  comment=None):
         """Constructor.
 
-        :param scaling_constant: Float to scale all the lattice vectors with.
+        :param scaling_constant: Float to scale all the lattice vectors with. Defaults to 1.0
         :param lattice_vectors: A 3x3 Iterable of Float with the cell vectors.
         :param atoms: List of `waspy.Atom' objects.
         :param coordinate_system: String specifying the coordinate system ("Cartesian"/"Direct")
@@ -128,7 +129,7 @@ class Structure(object):
     @scaling_constant.setter
     def scaling_constant(self, scaling_constant):
         if scaling_constant is None:
-            return
+            self._scaling_constant = 1.0
         else:
             try:
                 self._scaling_constant = float(scaling_constant)
@@ -206,33 +207,63 @@ class Structure(object):
             comment = 'Comment'
         self._comment = comment
 
-def _get_vasp_poscar(poscar_lines):
-    """Construct the VASP POSCAR.
+    @property
+    def composition_dict(self):
+        if self.atoms is None:
+            return {}
+        composition_dict = defaultdict(int)
+        for atom in self.atoms:
+            composition_dict[atom.species] += 1
+        return composition_dict
 
-    :return: contents of a VASP 5 POSCAR file
-    :rtype: str
-    """
-    poscar = ''
-    # system title
-    poscar += self.system_title + '\n'
-    # scaling factor
-    poscar += '{:18.14f}\n'.format(self.scaling_constant)
-    # lattice_vectors
-    for lv in self.lattice_vectors:
-        poscar += '{:>18.14f}  {:>18.14f}  {:>18.14f}\n'.format(*lv)
-    # list of elements
-    poscar += ' '.join(['{:>4s}'.format(e) for e in self.list_of_elements]) + '\n'
-    # list of number of atoms
-    poscar += ' '.join(['{:>4s}'.format(str(n)) for n in self.list_of_number_of_atoms]) + '\n'
-    # coordinate system
-    poscar += '{}\n'.format(self.coordinate_system)
-    # atomic coordinates
-    for ac in self.list_of_atomic_coordinates:
-        poscar += '{:>18.14f}  {:>18.14f}  {:>18.14f}\n'.format(*ac)
-    return poscar
+    @property
+    def list_of_species(self):
+        if self.atoms is None:
+            return []
+        return sorted([atom.species for atom in self.atoms])
 
-@property
-def POSCAR(self):
-    """Structure in the VASP 5 POSCAR format."""
-    return self._get_vasp_poscar()
+    def _get_vasp_poscar(self):
+        """Construct the VASP POSCAR.
+
+        :return: String with the contents of a VASP 5 POSCAR file
+        """
+        poscar = []
+
+        # system title
+        poscar.append(self.comment)
+
+        # scaling factor
+        poscar.append('{:18.14f}'.format(self.scaling_constant))
+
+        # lattice_vectors
+        if self.lattice_vectors is None:
+            error_message = 'Lattice vectors not specified'
+            raise StructureError(error_message)
+        for lv in self.lattice_vectors:
+            poscar.append('  '.join(['{:>18.14f}'.format(_lv) for _lv in lv]))
+
+        # list of species, number of atoms, coordinate_system, atomic coordinates
+        if self.atoms is None:
+            error_message = 'No atoms in the structure'
+            raise StructureError(error_message)
+        if self.coordinate_system is None:
+            error_message = 'No coordinate system specified'
+            raise StructureError(error_message)
+        # list of species
+        poscar.append(' '.join(['{:>4s}'.format(species) for species in self.list_of_species]))
+        # list of number of atoms of each species
+        poscar.append(' '.join(['{:>4d}'.format(self.composition_dict[e]) for e in self.list_of_species]))
+        # coordinate system
+        poscar.append('{}'.format(self.coordinate_system))
+        # list of atomic coordinates
+        for species in self.list_of_species:
+            for atom in self.atoms:
+                if atom.species == species:
+                    poscar.append('  '.join(['{:>18.14f}'.format(ac) for ac in atom.coordinates]))
+        return '\n'.join(poscar)
+
+    @property
+    def POSCAR(self):
+        """Structure in the VASP 5 POSCAR format."""
+        return self._get_vasp_poscar()
 
