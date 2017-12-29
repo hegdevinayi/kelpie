@@ -231,12 +231,7 @@ class Structure(object):
 
         :return: String with the contents of a VASP 5 POSCAR file
         """
-        missing = self._missing_structure_components()
-        if missing:
-            error_message = ["Structure incomplete. Following components are missing:"]
-            for m in missing:
-                error_message.append(self._missing_components_message(m))
-            raise StructureError('\n'.join(error_message))
+        self._check_structure_is_complete()
 
         poscar = []
 
@@ -252,21 +247,33 @@ class Structure(object):
 
         # list of species
         poscar.append(' '.join(['{:>4s}'.format(species) for species in self.list_of_species]))
+
         # list of number of atoms of each species
         poscar.append(' '.join(['{:>4d}'.format(self.composition_dict[e]) for e in self.list_of_species]))
+
         # coordinate system
         poscar.append('{}'.format(self.coordinate_system))
+
         # list of atomic coordinates
         for species in self.list_of_species:
             for atom in self.atoms:
                 if atom.species == species:
                     poscar.append('  '.join(['{:>18.14f}'.format(ac) for ac in atom.coordinates]))
+
         return '\n'.join(poscar)
 
     @property
     def POSCAR(self):
         """Structure in the VASP 5 POSCAR format."""
         return self._get_vasp_poscar()
+
+    def _check_structure_is_complete(self):
+        missing = self._missing_structure_components()
+        if missing:
+            error_message = ["Structure incomplete. Following components are missing:"]
+            for m in missing:
+                error_message.append(self._missing_components_message(m))
+            raise StructureError('\n'.join(error_message))
 
     def _missing_structure_components(self):
         missing = []
