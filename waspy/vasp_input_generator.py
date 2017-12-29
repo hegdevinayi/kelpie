@@ -2,6 +2,9 @@ import os
 import sys
 import math
 import waspy
+from waspy import io
+from waspy.structure import Structure, StructureError
+from waspy.structure import _check_structure_is_complete
 from waspy.vasp_settings.incar import VASP_INCAR_TAGS
 from waspy.vasp_settings.potcar import VASP_RECO_POTCARS
 
@@ -15,21 +18,22 @@ class VaspInputGenerator(object):
     """Base class to generate VASP input files for a given POSCAR file."""
 
     def __init__(self,
-                 vasp_structure,
-                 calculation_settings,
+                 structure=None,
+                 calculation_settings=None,
                  write_location=None):
         """
-        :param vasp_structure: VASP POSCAR converted into `waspy.vasp_structure.VaspStructure` object. Required.
-        :type vasp_structure: `waspy.vasp_structure.VaspStructure`
-        :param calculation_settings: VASP INCAR tags, values, and POTCAR choices. Required.
+        :param structure: `waspy.structure.Structure` object.
+        :type structure: `waspy.vasp_structure.VaspStructure`
+        :param calculation_settings: VASP INCAR tags, values, and POTCAR choices.
         :type calculation_settings: dict(str, str or float or bool or list or dict)
         :param write_location: where the VASP input files should be written.
                                Defaults to the location of the `vasp_structure.structure_file`.
         :type write_location: str
         """
 
-        #: `waspy.vasp_structure.VaspStructure` object containing the VASP POSCAR data
-        self.vasp_structure = vasp_structure
+        #: `waspy.structure.VaspStructure` object containing the VASP POSCAR data
+        self._structure = None
+        self.structure = structure
 
         #: VASP INCAR tags, values and POTCAR choices for generating input files.
         self.calculation_settings = calculation_settings
@@ -43,6 +47,17 @@ class VaspInputGenerator(object):
         # if ENCUT is not set in calculation settings, set it manually
         if self.calculation_settings.get('encut') is None:
             self.set_calculation_encut()
+
+    @property
+    def structure(self):
+        return self._structure
+
+    @structure.setter
+    def structure(self, structure):
+        if isinstance(structure, Structure):
+            _check_structure_is_complete(structure)
+            self._structure = structure
+        elif isinstance(structure, str)
 
     def vasp_tag_value_formatter(self, value):
         if isinstance(value, list):

@@ -48,5 +48,6 @@ class TestVaspInputGenerator(unittest.TestCase):
         self.assertTrue(os.path.isfile('write_vasp_input_files/POTCAR'))
         self.assertTrue(os.path.isfile('write_vasp_input_files/INCAR'))
 
+
 if __name__ == '__main__':
     unittest.main()
