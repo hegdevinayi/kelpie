@@ -264,17 +264,8 @@ class VaspInputGenerator(object):
         :type file_location: str
         :param overwrite: if `file_location` already exists, should it be overwritten?
         """
-        if not overwrite:
-            if os.path.isfile(file_location):
-                sys.stdout.write('File {} already exists.'.format(file_location))
-                user_input = input('Overwrite? [y/n]: ')
-                while user_input.lower() not in ['y', 'n']:
-                    user_input = input('Type "y" or "n": ')
-                if user_input.lower() == 'n':
-                    sys.stdout.write('OK, skipped writing {}.\n'.format(file_location))
-                    sys.stdout.flush()
-                    return
-
+        if os.path.isfile(file_location) and not overwrite:
+            return
         with open(file_location, 'w') as fw:
             fw.write(file_contents)
         return
