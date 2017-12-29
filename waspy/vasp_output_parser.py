@@ -1,5 +1,4 @@
 import os
-import sys
 import numpy as np
 import gzip
 import datetime
@@ -26,17 +25,12 @@ class VasprunXMLParser(object):
         :return: a BeautifulSoup object of the XML data
         :rtype: bs4.BeautifulSoup
         """
-        sys.stdout.write('Reading file {}.'.format(xml_file))
-        sys.stdout.write(' Making soup from XML stream...')
-        sys.stdout.flush()
         if 'gz' in os.path.splitext(xml_file)[-1]:
             with gzip.open(xml_file, 'rb') as xml_stream:
                 soup = BeautifulSoup(xml_stream, 'xml', from_encoding=from_encoding)
         else:
             with open(xml_file, 'rb') as xml_stream:
                 soup = BeautifulSoup(xml_stream, 'xml', from_encoding=from_encoding)
-        sys.stdout.write(' done.\n')
-        sys.stdout.flush()
         return soup
 
     def read_composition_information(self):
