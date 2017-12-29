@@ -85,8 +85,6 @@ class Atom(object):
         return self._species
 
 
-
-
 class StructureError(Exception):
     """Base class for error(s) in Structure objects."""
     pass
@@ -194,10 +192,17 @@ class Structure(object):
         self._atoms = atoms
 
     def add_atom(self, atom):
+        """Add `atom` to the structure.
+
+        :raise StructureError: if `atom` is not a `structure.Atom` object."""
         if not isinstance(atom, Atom):
-            error_message = '`atom` must be a `waspy.Atom` object'
+            error_message = '`atom` must be a `waspy.structure.Atom` object'
             raise StructureError(error_message)
         self._atoms.append(atom)
+
+    @property
+    def natoms(self):
+        return len(self.atoms)
 
     @property
     def comment(self):
@@ -233,7 +238,7 @@ class Structure(object):
 
         :return: String with the contents of a VASP 5 POSCAR file
         """
-        _check_structure_is_complete(self)
+        self.check_structure_is_complete()
         poscar = []
         # system title
         poscar.append(self.comment)
@@ -260,7 +265,11 @@ class Structure(object):
         """Structure in the VASP 5 POSCAR format."""
         return self._get_vasp_poscar()
 
-    def _check_structure_is_complete(self):
+    def check_structure_is_complete(self):
+        """Check if structure has all components required for a DFT calculation.
+
+        :raise StructureError: if any necessary component is missing.
+        """
         missing = self._missing_structure_components()
         if missing:
             error_message = ["Structure incomplete. Following components are missing:"]
