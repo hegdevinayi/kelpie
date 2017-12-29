@@ -1,9 +1,8 @@
 import os
-import sys
 import math
 import waspy
 from waspy import io
-from waspy.structure import Structure, StructureError
+from waspy.structure import Structure
 from waspy.vasp_settings.incar import DEFAULT_VASP_INCAR_SETTINGS, VASP_INCAR_TAGS
 from waspy.vasp_settings.potcar import VASP_RECO_POTCARS
 
