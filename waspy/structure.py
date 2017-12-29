@@ -259,34 +259,25 @@ class Structure(object):
         :return: String with the contents of a VASP 5 POSCAR file
         """
         _check_structure_is_complete(self)
-
         poscar = []
-
         # system title
         poscar.append(self.comment)
-
         # scaling factor
         poscar.append('{:18.14f}'.format(self.scaling_constant))
-
         # lattice_vectors
         for lv in self.lattice_vectors:
             poscar.append('  '.join(['{:>18.14f}'.format(_lv) for _lv in lv]))
-
         # list of species
         poscar.append(' '.join(['{:>4s}'.format(species) for species in self.list_of_species]))
-
         # list of number of atoms of each species
         poscar.append(' '.join(['{:>4d}'.format(self.composition_dict[e]) for e in self.list_of_species]))
-
         # coordinate system
         poscar.append('{}'.format(self.coordinate_system))
-
         # list of atomic coordinates
         for species in self.list_of_species:
             for atom in self.atoms:
                 if atom.species == species:
                     poscar.append('  '.join(['{:>18.14f}'.format(ac) for ac in atom.coordinates]))
-
         return '\n'.join(poscar)
 
     @property
