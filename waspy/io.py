@@ -1,6 +1,6 @@
 import os
 from waspy.structure import Atom
-from waspy.structure import Structure, StructureError
+from waspy.structure import Structure
 from waspy.data import STD_ATOMIC_WEIGHTS
 
 
@@ -22,6 +22,10 @@ def read_poscar(poscar_file='POSCAR'):
     with open(poscar_file, 'r') as fr:
         poscar_lines = [line.strip() for line in fr.readlines()]
 
+    if not _consistent_number_of_atoms(poscar_lines):
+        error_message = 'Mismatch between the number of atoms (Line 7) and the number of atomic coordinates (Lines 9-)'
+        raise WaspyIOError(error_message)
+
     poscar_blocks = ['system_title',
                      'scaling_constant',
                      'lattice_vectors',
@@ -34,11 +38,7 @@ def read_poscar(poscar_file='POSCAR'):
 
     poscar_as_dict = {}
     for block in poscar_blocks:
-        poscar_as_dict[block] = globals()['_get_{}'.format(block)](poscar_lines)
-
-    if len(poscar_as_dict['repeating_list_of_species']) != len(poscar_as_dict['list_of_atomic_coordinates']):
-        error_message = 'Mismatch between the number of atoms (Line 7) and the number of atomic coordinates (Lines 9-)'
-        raise WaspyIOError(error_message)
+        poscar_as_dict[block] = globals()['_{}'.format(block)](poscar_lines)
 
     s = Structure()
     s.comment = poscar_as_dict['system_title']
@@ -52,13 +52,20 @@ def read_poscar(poscar_file='POSCAR'):
     return s
 
 
-def _get_system_title(poscar_lines):
+def _consistent_number_of_atoms(poscar_lines):
+    """Is the total number of atoms (Line 7) consistent with the number of atomic coordinates specified?
+
+    :return: Boolean """
+    return len(_repeating_list_of_species(poscar_lines)) == len(_list_of_atomic_coordinates(poscar_lines))
+
+
+def _system_title(poscar_lines):
     """:return: String with the system title
     """
     return poscar_lines[0]
 
 
-def _get_scaling_constant(poscar_lines):
+def _scaling_constant(poscar_lines):
     """ Parse the scaling constant for the structure (line 2).
 
     :return: Float with the scaling constant
@@ -73,7 +80,7 @@ def _get_scaling_constant(poscar_lines):
         return scaling_constant
 
 
-def _get_lattice_vectors(poscar_lines):
+def _lattice_vectors(poscar_lines):
     """Parse the lattice vectors of the structure (lines 3-5).
 
     :return: 3x3-shaped List of Float with the lattice vectors [[a11, a12, a13], [a21, a22, a23], ...]
@@ -90,7 +97,7 @@ def _get_lattice_vectors(poscar_lines):
         return lattice_vectors
 
 
-def _get_list_of_species(poscar_lines):
+def _list_of_species(poscar_lines):
     """Parse the species in the structure (line 6).
 
     :return: List of String with the species symbols
@@ -105,7 +112,7 @@ def _get_list_of_species(poscar_lines):
     return species_list
 
 
-def _get_list_of_number_of_atoms(poscar_lines):
+def _list_of_number_of_atoms(poscar_lines):
     """Parse the number of atoms of each species in the structure (line 7).
 
     :return: List of Int with the number of atoms of each species
@@ -120,14 +127,14 @@ def _get_list_of_number_of_atoms(poscar_lines):
         return list_of_number_of_atoms
 
 
-def _get_repeating_list_of_species(poscar_lines):
+def _repeating_list_of_species(poscar_lines):
     repeating_list_of_species = []
-    for s, n in zip(_get_list_of_species(poscar_lines), _get_list_of_number_of_atoms(poscar_lines)):
+    for s, n in zip(_list_of_species(poscar_lines), _list_of_number_of_atoms(poscar_lines)):
         repeating_list_of_species += [s]*n
     return repeating_list_of_species
 
 
-def _get_coordinate_system(poscar_lines):
+def _coordinate_system(poscar_lines):
     """
     Are the atomic positions in direct/fractional or cartesian coordinates? (line 8)
 
@@ -149,7 +156,7 @@ def _get_coordinate_system(poscar_lines):
         raise WaspyIOError(error_message)
 
 
-def _get_list_of_atomic_coordinates(poscar_lines):
+def _list_of_atomic_coordinates(poscar_lines):
     """
     Parse all the atomic coordinates (line 9-(9+number of atoms)).
 
@@ -157,7 +164,9 @@ def _get_list_of_atomic_coordinates(poscar_lines):
     :raise WaspyIOError: if any atomic coordinate component cannot be converted to float
     """
     atomic_coordinates = []
-    for i, line in enumerate(poscar_lines[8:8+sum(_get_list_of_number_of_atoms(poscar_lines))]):
+    for i, line in enumerate(poscar_lines[8:]):
+        if line[0] == '#':
+            break
         try:
             coord = [float(c) for c in line.split()[:3]]
         except ValueError:
@@ -165,4 +174,6 @@ def _get_list_of_atomic_coordinates(poscar_lines):
             raise WaspyIOError(error_message)
         else:
             atomic_coordinates.append(coord)
+        if i == sum(_list_of_number_of_atoms(poscar_lines))-1:
+            break
     return atomic_coordinates
