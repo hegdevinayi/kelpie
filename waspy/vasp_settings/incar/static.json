@@ -3,11 +3,11 @@
   "icharg": 1,
   "prec": "acc",
   "lreal": false,
-  "encut": 520,
+  "encut": 600,
   "kspacing": 0.15,
   "kgamma": true,
   "algo": "normal",
-  "ediff": 1E-6,
+  "ediff": 1E-8,
   "nelmin": 5,
   "nelm": 60,
   "ismear": -5,
@@ -23,6 +23,6 @@
   "lwave": false,
   "lelf": false,
   "kpar": 4,
-  "ncore": 12,
+  "ncore": 32,
   "potcar_settings": {"version": "54", "xc": "PBE", "element_potcars": {}}
 }

@@ -6,7 +6,7 @@
   "kspacing": 0.15,
   "kgamma": true,
   "algo": "normal",
-  "ediff": 1E-6,
+  "ediff": 1E-8,
   "nelmin": 5,
   "nelm": 60,
   "ismear": 1,
@@ -22,7 +22,7 @@
   "lwave": false,
   "lelf": false,
   "kpar": 4,
-  "ncore": 12,
+  "ncore": 32,
   "encut_scaling_factor": 1.5,
   "maximum_encut": 600,
   "potcar_settings": {"version": "54", "xc": "PBE", "element_potcars": {}}
