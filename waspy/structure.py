@@ -222,6 +222,10 @@ class Structure(object):
             return []
         return sorted(set([atom.species for atom in self.atoms]))
 
+    @property
+    def structural_formula(self):
+        return ''.join(['{}{}'.format(e, self.composition_dict[e]) for e in self.list_of_species])
+
     def _get_vasp_poscar(self):
         """Construct the VASP POSCAR.
 
