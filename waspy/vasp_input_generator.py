@@ -54,10 +54,13 @@ class VaspInputGenerator(object):
         elif isinstance(structure, str):
             if os.path.isfile(structure):
                 structure = io.read_poscar(poscar_file=structure)
-            self._structure = structure
+                self._structure = structure
+            else:
+                error_message = 'POSCAR file {} not found'.format(structure)
+                raise VaspInputError(error_message)
         else:
             error_message = '`structure` must be `structure.Structure` object or path to a valid POSCAR'
-            raise StructureError(error_message)
+            raise VaspInputError(error_message)
 
     @property
     def calculation_settings(self):
@@ -75,10 +78,8 @@ class VaspInputGenerator(object):
             self.set_calculation_encut()
 
         # Scale EDIFF with the number of atoms in the unit cell
-        if self._calculation_settings.get('ediff_per_atom'):
-            if self._calculation_settings.get('ediff') is None:
-                self._calculation_settings.update({'ediff': DEFAULT_VASP_INCAR_SETTINGS['relaxation']['ediff']})
-            self._calculation_settings.update({'ediff': self._calculation_settings['ediff']*self.structure.natoms})
+        if self._calculation_settings.get('scale_ediff_per_atom'):
+            self.scale_ediff_per_atom()
 
     @property
     def write_location(self):
@@ -226,6 +227,11 @@ class VaspInputGenerator(object):
         if encut > maximum_encut:
             encut = maximum_encut
         self._calculation_settings.update({'encut': encut})
+
+    def scale_ediff_per_atom(self):
+        """Scale EDIFF with number of atoms in the unit cell. EDIFF' = EDIFF*number of atoms in the cell."""
+        ediff = self._calculation_settings.get('ediff', DEFAULT_VASP_INCAR_SETTINGS['relaxation']['ediff'])
+        self._calculation_settings.update({'ediff': ediff*self.structure.natoms, 'scale_ediff_per_atom': False})
 
     @property
     def INCAR(self):
