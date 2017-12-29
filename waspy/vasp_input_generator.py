@@ -278,11 +278,8 @@ class VaspInputGenerator(object):
     def write_vasp_input_files(self, overwrite=True):
         """Write VASP POSCAR, POTCAR, and INCAR files into the folder specified by `self.write_location`.
 
-        :param overwrite: Should files be overwritten if they already exist? Defaults to True."""
-        try:
-            os.mkdir(self.write_location)
-        except FileExistsError:
-            pass
+        :param overwrite: Should folders/files be overwritten if they already exist? Defaults to True."""
+        os.makedirs(self.write_location, exist_ok=overwrite)
 
         # write the POSCAR file
         poscar_file = os.path.join(self.write_location, 'POSCAR')
