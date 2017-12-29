@@ -85,6 +85,33 @@ class Atom(object):
         return self._species
 
 
+def _check_structure_is_complete(structure):
+    missing = _missing_structure_components(structure)
+    if missing:
+        error_message = ["Structure incomplete. Following components are missing:"]
+        for m in missing:
+            error_message.append(_missing_components_message(m))
+        raise StructureError('\n'.join(error_message))
+
+
+def _missing_structure_components(structure):
+    missing = []
+    if not structure.lattice_vectors:
+        missing.append('L')
+    if not structure.atoms:
+        missing.append('A')
+    if not structure.coordinate_system:
+        missing.append('C')
+    return missing
+
+
+def _missing_components_message(m):
+    m_dict = {'L': 'Lattice vectors',
+              'A': 'Atoms',
+              'C': 'Coordinate system'}
+    return '[{}]: {}'.format(m, m_dict[m])
+
+
 class StructureError(Exception):
     """Base class for error(s) in Structure objects."""
     pass
@@ -231,7 +258,7 @@ class Structure(object):
 
         :return: String with the contents of a VASP 5 POSCAR file
         """
-        self._check_structure_is_complete()
+        _check_structure_is_complete(self)
 
         poscar = []
 
@@ -266,33 +293,4 @@ class Structure(object):
     def POSCAR(self):
         """Structure in the VASP 5 POSCAR format."""
         return self._get_vasp_poscar()
-
-    def _check_structure_is_complete(self):
-        missing = self._missing_structure_components()
-        if missing:
-            error_message = ["Structure incomplete. Following components are missing:"]
-            for m in missing:
-                error_message.append(self._missing_components_message(m))
-            raise StructureError('\n'.join(error_message))
-
-    def _missing_structure_components(self):
-        missing = []
-        if not self.lattice_vectors:
-            missing.append('L')
-        if not self.atoms:
-            missing.append('A')
-        if not self.coordinate_system:
-            missing.append('C')
-        return missing
-
-    @staticmethod
-    def _missing_components_message(m):
-        m_dict = {'L': 'Lattice vectors',
-                  'A': 'Atoms',
-                  'C': 'Coordinate system'}
-        return '[{}]: {}'.format(m, m_dict[m])
-
-
-
-
 
