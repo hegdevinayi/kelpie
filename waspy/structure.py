@@ -231,6 +231,13 @@ class Structure(object):
 
         :return: String with the contents of a VASP 5 POSCAR file
         """
+        missing = self._missing_structure_components()
+        if missing:
+            error_message = ["Structure incomplete. Following components are missing:"]
+            for m in missing:
+                error_message.append(self._missing_components_message(m))
+            raise StructureError('\n'.join(error_message))
+
         poscar = []
 
         # system title
@@ -240,19 +247,9 @@ class Structure(object):
         poscar.append('{:18.14f}'.format(self.scaling_constant))
 
         # lattice_vectors
-        if self.lattice_vectors is None:
-            error_message = 'Lattice vectors not specified'
-            raise StructureError(error_message)
         for lv in self.lattice_vectors:
             poscar.append('  '.join(['{:>18.14f}'.format(_lv) for _lv in lv]))
 
-        # list of species, number of atoms, coordinate_system, atomic coordinates
-        if self.atoms is None:
-            error_message = 'No atoms in the structure'
-            raise StructureError(error_message)
-        if self.coordinate_system is None:
-            error_message = 'No coordinate system specified'
-            raise StructureError(error_message)
         # list of species
         poscar.append(' '.join(['{:>4s}'.format(species) for species in self.list_of_species]))
         # list of number of atoms of each species
@@ -270,4 +267,25 @@ class Structure(object):
     def POSCAR(self):
         """Structure in the VASP 5 POSCAR format."""
         return self._get_vasp_poscar()
+
+    def _missing_structure_components(self):
+        missing = []
+        if not self.lattice_vectors:
+            missing.append('L')
+        if not self.atoms:
+            missing.append('A')
+        if not self.coordinate_system:
+            missing.append('C')
+        return missing
+
+    @staticmethod
+    def _missing_components_message(m):
+        m_dict = {'L': 'Lattice vectors',
+                  'A': 'Atoms',
+                  'C': 'Coordinate system'}
+        return '[{}]: {}'.format(m, m_dict[m])
+
+
+
+
 
