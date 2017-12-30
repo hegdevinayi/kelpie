@@ -5,14 +5,14 @@
   "partition": "regular",
   "qos": "normal",
   "account": "2588",
-  "constraint": "knl,quad,cache",
+  "constraint": "haswell",
   "license": "SCRATCH",
   "nodes": "1",
-  "walltime": "24:00:00",
+  "walltime": "48:00:00",
   "output": "job.oe",
   "modules": [
-    "vasp/20170629-knl"
+    "vasp/20170629-hsw"
   ],
   "exe": "vasp_std",
-  "n_mpi_per_node": 64
+  "n_mpi_per_node": 32
 }
