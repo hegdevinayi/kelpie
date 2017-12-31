@@ -1,5 +1,4 @@
 {
-  "template": "cori.q",
   "submit_cmd": "sbatch",
   "job-name": "waspy",
   "partition": "regular",

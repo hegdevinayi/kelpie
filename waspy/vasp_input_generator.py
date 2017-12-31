@@ -26,7 +26,7 @@ class VaspInputGenerator(object):
                                      Defaults to pre-defined full relaxation calculation.
         :param write_location: String with the location where the VASP input files should be written.
                                Defaults to folder `structure.structural_formula` in the current working directory
-        :param kwargs: Dictionary of other parameters, if any
+        :param kwargs: Dictionary of other miscellaneous parameters, if any.
         """
 
         #: `waspy.structure.VaspStructure` object containing the VASP POSCAR data
