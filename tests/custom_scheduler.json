@@ -1,0 +1,17 @@
+{
+  "submit_cmd": "sbatch",
+  "job-name": "waspy",
+  "partition": "regular",
+  "qos": "normal",
+  "account": "1673",
+  "constraint": "knl,quad,cache",
+  "license": "SCRATCH",
+  "nodes": "1",
+  "walltime": "24:00:00",
+  "output": "job.oe",
+  "modules": [
+    "vasp/20170629-knl"
+  ],
+  "exe": "vasp_ncl",
+  "n_mpi_per_node": 64
+}
