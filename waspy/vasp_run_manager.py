@@ -1,4 +1,7 @@
 import os
+import subprocess
+import datetime
+from contextlib import contextmanager
 import json
 from waspy import io
 from waspy.scheduler_settings import DEFAULT_SCHEDULER_SETTINGS
@@ -6,6 +9,16 @@ from waspy.scheduler_templates import SCHEDULER_TEMPLATES
 from waspy.vasp_settings.incar import DEFAULT_VASP_INCAR_SETTINGS
 from waspy.vasp_input_generator import VaspInputGenerator
 from waspy.vasp_output_parser import VasprunXMLParser
+
+
+@contextmanager
+def _change_dir(new_dir):
+    current_dir = os.getcwd()
+    os.chdir(new_dir)
+    try:
+        yield
+    finally:
+        os.chdir(current_dir)
 
 
 class VaspRunManagerError(Exception):
@@ -226,54 +239,34 @@ class VaspSingleRunManager(object):
     def batch_script(self):
         return self._get_batch_script()
 
-    def single_vasp_run(self, structure, location, calc_type='relaxation'):
-        """Run a single VASP calculation of type `calc_type`.
+    def _write_job_files(self, calc_sett, calc_dir):
+        ig = VaspInputGenerator(structure=self.structure,
+                                calculation_settings=calc_sett,
+                                write_location=calc_dir,
+                                **self.kwargs)
+        ig.write_vasp_input_files()
+        with open(os.path.join(calc_dir, self.scheduler_script_name), 'w') as fw:
+            fw.write(self.batch_script)
 
-        :param structure: initial crystal structure.
-        :type structure: `waspy.structure.VaspStructure`
-        :param location: path where VASP calculation must be run.
-        :type: str
-        :param calc_type: type of DFT calculation: relaxation/static/hse (primarily for reading in settings)
-        :type calc_type: str
-        """
-        settings = DEFAULT_VASP_INCAR_SETTINGS[calc_type]
-        settings.update(self.nondefault_calc_settings[calc_type], {})
-        vasp_input_gen = VaspInputGenerator(structure, settings, location)
-        vasp_input_gen.write_vasp_input_files()
-        self.run_vasp()
+    @staticmethod
+    def _time_stamped_folder(folder):
+        d = datetime.datetime.now()
+        ts_folder = '{}_{:4d}'.format(folder, d.year)
+        ts_folder += ('{:0>2d}'*5).format(d.month, d.day, d.hour, d.minute, d.second)
+        return ts_folder
 
+    def _mpi_call(self):
+        scheduler_settings = {**self.host_scheduler_settings}
+        scheduler_settings.update(self.custom_scheduler_settings)
+        mpi_call = scheduler_settings.get('mpi_call')
+        n_mpi = scheduler_settings.get('nodes', 1)*scheduler_settings.get('n_mpi_per_node', 64)
+        lcores_per_mpi = scheduler_settings.get('lcores_per_mpi', 4)
+        exe = scheduler_settings.get('exe', 'vasp_std')
+        return mpi_call.format(n_mpi=n_mpi, lcores_per_mpi=lcores_per_mpi, exe=exe)
 
-
-    def vasp_relaxation_workflow(self):
-        """Workflow for performing a relaxation run using VASP. A final SCF is always run.
-        
-        1- if run_dir does not exist, create it
-        2- if it does exist, delete all files in the run_dir except the structure_file, if present
-        3- initiate the relaxation workflow: 
-            A- while vasprun.xml is not completely converged
-                I- generate VASP (relaxation) input files for the structure (CONTCAR if present, structure_file otherwise)
-                II- run VASP
-                III- parse the vasprun.xml file and add the CalculationData object to the workflow
-                IV- create a "relaxation_{yyyy}{mm}{dd}{hh}{mm}{ss}" folder and move all files (except structure_file) to it
-                    (if it is completely converged, write into "relaxation_final" directory?)
-            B- generate VASP (static) input files for the final CONTCAR
-            C- run VASP
-            D- if the static run does not converge,
-            E- delete all files and restart static; exit if unsuccessful on second attempt
-            F- write the RelaxationWorkflowData.pickle file with all the necessary data
-        4- touch empty file called DONE if everything is done?
-        """
-            
-        # read in calculation settings
-        # update with nondefault calculation settings, if any
-        # generate_VASP_input
-        # run VASP
-        # extract data
-        # did it converge (in all the different ways)?
-        # if not, copy contents into relaxation_{n}
-        # re-relax
-        # if converged, copy contents into relaxation_final
-        # do static
+    def run_vasp(self, calc_dir):
+        with _change_dir(calc_dir):
+            vrun = subprocess.run(self._mpi_call.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     def vasp_static_workflow(self):
         """Workflow for performing a single SCF calculation using VASP.
@@ -292,19 +285,40 @@ class VaspSingleRunManager(object):
 
         calc_sett = {**DEFAULT_VASP_INCAR_SETTINGS['static']}
         calc_sett.update(self.custom_calculation_settings)
+        calc_dir = os.path.join(self.run_location, self._time_stamped_folder('static'))
+        self._write_job_files(calc_sett, calc_dir)
+        self.run_vasp(calc_dir)
 
-        calc_dir = os.path.join(self.run_location, self.structure.structural_formula)
+    def vasp_relaxation_workflow(self):
+        """Workflow for performing a relaxation run using VASP. A final SCF is always run.
 
-        ig = VaspInputGenerator(structure=self.structure,
-                                calculation_settings=calc_sett,
-                                write_location=calc_dir,
-                                **self.kwargs
-                                )
-        ig.write_vasp_input_files()
+        1- if run_dir does not exist, create it
+        2- if it does exist, delete all files in the run_dir except the structure_file, if present
+        3- initiate the relaxation workflow:
+            A- while vasprun.xml is not completely converged
+                I- generate VASP (relaxation) input files for the structure (CONTCAR if present, structure_file otherwise)
+                II- run VASP
+                III- parse the vasprun.xml file and add the CalculationData object to the workflow
+                IV- create a "relaxation_{yyyy}{mm}{dd}{hh}{mm}{ss}" folder and move all files (except structure_file) to it
+                    (if it is completely converged, write into "relaxation_final" directory?)
+            B- generate VASP (static) input files for the final CONTCAR
+            C- run VASP
+            D- if the static run does not converge,
+            E- delete all files and restart static; exit if unsuccessful on second attempt
+            F- write the RelaxationWorkflowData.pickle file with all the necessary data
+        4- touch empty file called DONE if everything is done?
+        """
 
-        with open(os.path.join(calc_dir, self.scheduler_script_name), 'w') as fw:
-            fw.write(self.batch_script)
-
+        # read in calculation settings
+        # update with nondefault calculation settings, if any
+        # generate_VASP_input
+        # run VASP
+        # extract data
+        # did it converge (in all the different ways)?
+        # if not, copy contents into relaxation_{n}
+        # re-relax
+        # if converged, copy contents into relaxation_final
+        # do static
 
     def generate_VASP_input():
         pass
