@@ -1,11 +1,11 @@
 import os
 import json
 from waspy import io
-from waspy.vasp_input_generator import VaspInputGenerator
-from waspy.vasp_output_parser import VasprunXMLParser
 from waspy.scheduler_settings import DEFAULT_SCHEDULER_SETTINGS
 from waspy.scheduler_templates import SCHEDULER_TEMPLATES
 from waspy.vasp_settings.incar import DEFAULT_VASP_INCAR_SETTINGS
+from waspy.vasp_input_generator import VaspInputGenerator
+from waspy.vasp_output_parser import VasprunXMLParser
 
 
 class VaspRunManagerError(Exception):
@@ -69,10 +69,10 @@ class VaspSingleRunManager(object):
         """
 
         #: VASP POSCAR file containing the structure (only VASP 5 format currently supported).
-        self._structure_file = None
-        self.structure_file = structure_file
         #: `waspy.structure.Structure` object containing VASP POSCAR data.
+        self._structure_file = None
         self._structure = None
+        self.structure_file = structure_file
 
         #: Type of DFT calculation workflow: relaxation/static/hse/...
         self._calculation_workflow = None
@@ -82,6 +82,7 @@ class VaspSingleRunManager(object):
         #: default INCAR, POTCAR settings defined by `waspy.vasp_settings.incar.DEFAULT_VASP_INCAR_SETTINGS` for the
         # calculation workflow specified.
         #: VASP recommended POTCARs used by default are in `waspy.vasp_settings.potcar.VASP_RECO_POTCARS`.
+        self._custom_calculation_settings = None
         self.custom_calculation_settings = custom_calculation_settings
 
         #: Relative/absolute path to run VASP calculations.
@@ -95,6 +96,7 @@ class VaspSingleRunManager(object):
         self.host_scheduler_settings = host_scheduler_settings
 
         #: Nondefault scheduler settings for this particular run. Updates `self.host_scheduler_settings`.
+        self._custom_scheduler_settings = None
         self.custom_scheduler_settings = custom_scheduler_settings
 
         #: Template for the batch script
@@ -131,6 +133,17 @@ class VaspSingleRunManager(object):
         self._calculation_workflow = calculation_workflow.lower()
 
     @property
+    def custom_calculation_settings(self):
+        return self._custom_calculation_settings
+
+    @custom_calculation_settings.setter
+    def custom_calculation_settings(self, custom_calculation_settings):
+        if not custom_calculation_settings:
+            self._custom_calculation_settings = {}
+        else:
+            self._custom_calculation_settings = custom_calculation_settings
+
+    @property
     def run_location(self):
         return self._run_location
 
@@ -161,13 +174,24 @@ class VaspSingleRunManager(object):
             self._host_scheduler_settings = settings
 
     @property
+    def custom_scheduler_settings(self):
+        return self._custom_scheduler_settings
+
+    @custom_scheduler_settings.setter
+    def custom_scheduler_settings(self, custom_scheduler_settings):
+        if not custom_scheduler_settings:
+            self._custom_scheduler_settings = {}
+        else:
+            self._custom_scheduler_settings = custom_scheduler_settings
+
+    @property
     def batch_script_template(self):
         return self._batch_script_template
 
     @batch_script_template.setter
     def batch_script_template(self, batch_script_template):
         if not batch_script_template:
-            self._batch_script_template = 'cori.q'
+            self._batch_script_template = SCHEDULER_TEMPLATES['cori']
             return
         if os.path.isfile(batch_script_template):
             self._batch_script_template = batch_script_template
@@ -180,7 +204,7 @@ class VaspSingleRunManager(object):
 
     def _get_batch_script(self):
         settings = {**self.host_scheduler_settings}
-        settings.update(**self.custom_scheduler_settings)
+        settings.update(self.custom_scheduler_settings)
         with open(self.batch_script_template, 'r') as fr:
             template = fr.read()
         template = template.format(**settings)
@@ -188,6 +212,7 @@ class VaspSingleRunManager(object):
         for load_module in settings.get('modules', []):
             load_modules.append('module load {}'.format(load_module))
         template += '\n'.join(load_modules)
+        template += '\n'
         return template
 
     @property
@@ -264,16 +289,21 @@ class VaspSingleRunManager(object):
         # did it electronically converge?
 
 
-def generate_VASP_input():
-
-def generate_batch_script():
-
-def submit_job():
-
-    def run_vasp():
+    def generate_VASP_input():
         pass
 
-def check_convergence():
+    def generate_batch_script():
+        pass
 
-def write_calculation_data():
+    def submit_job():
+        pass
+
+        def run_vasp():
+            pass
+
+    def check_convergence():
+        pass
+
+    def write_calculation_data():
+        pass
 
