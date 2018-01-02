@@ -1,0 +1,71 @@
+from waspy.vasp_run_manager import *
+import argparse
+import json
+
+
+def main():
+
+    description = """Command line interface to waspy."""
+    arg_parser = argparse.ArgumentParser(prog='waspy',
+                                         description=description,
+                                         formatter_class=argparse.RawTextHelpFormatter)
+
+    mode_help = """Mode to run waspy in.
+single: One structure to be calculated.
+multiple: More than one structure to calculate in a single batch job.
+          Typically, used only when all the structures are expected to take
+          similar amounts of time to run.
+"""
+    arg_parser.add_argument('-m', '--mode',
+                            default='single',
+                            choices=['single', 'multiple'],
+                            help=mode_help)
+
+    structure_help = """Location of the file with the structure to calculate.
+If there are more than one structure to be calculated (e.g. "multiple" mode),
+the location should be of a text file with the list of structures, path to one
+structure file per line. (This argument is required if no settings file with
+parameters is specified, and if provided overrides value(s) in the file.)
+"""
+    arg_parser.add_argument('-s', '--structure',
+                            default=None,
+                            help=structure_help)
+
+    params_help = """Location of the JSON file with a Dictionary of parameters
+as keys and their values. Will be passed directly to one of the run managers.
+See documentation for the corresponding run managers for a list of arguments:
+"single" mode: help(waspy.vasp_run_manager.VaspSingleRunManager)
+"multiple" mode: help(waspy.vasp_run_manager.VaspMultipleRunManager)
+"""
+    arg_parser.add_argument('-p', '--params',
+                            default=None,
+                            help=params_help)
+
+    args = arg_parser.parse_args()
+
+    # if a parameters file is specified, load all the parameters and the values
+    manager_params = {}
+    if args.params:
+        with open(args.params, 'r') as fr:
+            manager_params = json.load(fr)
+
+    # check if a structure file is specified
+    structure_file = args.structure
+    if not structure_file:
+        structure_file = manager_params.get('structure_file', None)
+    if not structure_file:
+        error_message = 'Structure file not specified'
+        arg_parser.error(error_message)
+
+    if args.mode == 'multiple':
+        error_message = 'Mode {} not implemented yet'
+        raise NotImplementedError(error_message)
+
+    elif args.mode == 'single':
+        vrm = VaspSingleRunManager(structure_file=structure_file,
+                                   **manager_params)
+        vrm.vasp_static_workflow()
+
+
+if __name__ == '__main__':
+    main()
