@@ -7,4 +7,5 @@ templates = glob.glob(os.path.join(current_dir, '*.q'))
 # module variable DEFAULT_SCHEDULER_SETTINGS
 SCHEDULER_TEMPLATES = {}
 for template in templates:
-    SCHEDULER_TEMPLATES[template] = os.path.abspath(template)
+    template_tag = os.path.splitext(os.path.basename(template))[0]
+    SCHEDULER_TEMPLATES[template_tag] = os.path.abspath(template)

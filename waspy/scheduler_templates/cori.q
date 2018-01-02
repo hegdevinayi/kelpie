@@ -1,8 +1,8 @@
 #!/bin/bash -l
 #SBATCH -J {job-name}
 #SBATCH -N {nodes}
-#SBATCH -p {partition}
 #SBATCH -t {walltime}
+#SBATCH -p {partition}
 #SBATCH -A {account}
 #SBATCH -L {license}
 #SBATCH -o {output}
