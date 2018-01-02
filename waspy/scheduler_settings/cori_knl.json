@@ -1,5 +1,6 @@
 {
   "submit_cmd": "sbatch",
+  "mpi_call": "srun -n {n_mpi} -c {lcores_per_mpi} --cpu_bind=cores {exe} 1>stdout 2>stderr",
   "job-name": "waspy",
   "partition": "regular",
   "qos": "normal",
@@ -13,5 +14,6 @@
     "vasp/20170629-knl"
   ],
   "exe": "vasp_std",
-  "n_mpi_per_node": 64
+  "n_mpi_per_node": 64,
+  "lcores_per_mpi": 4
 }
