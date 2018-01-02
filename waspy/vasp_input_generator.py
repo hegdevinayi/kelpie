@@ -89,7 +89,7 @@ class VaspInputGenerator(object):
         if not write_location:
             self._write_location = self.structure.structural_formula
         else:
-            self.write_location = write_location
+            self._write_location = write_location
 
     def vasp_tag_value_formatter(self, value):
         if isinstance(value, list):
