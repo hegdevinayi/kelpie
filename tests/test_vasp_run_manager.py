@@ -78,6 +78,11 @@ class TestVaspSingleRunManager(unittest.TestCase):
         with open(cori_test_script, 'r') as fr:
             self.assertEqual(self.vrm.batch_script.strip().split()[-1], fr.read().strip().split()[-1])
 
+    def test_vasp_static_workflow(self):
+        vrm = VaspSingleRunManager(structure_file='sample_vasp_input/POSCAR.all_OK',
+                                   run_location='test_static_workflow')
+        vrm.vasp_static_workflow()
+
 
 if __name__ == '__main__':
     unittest.main()

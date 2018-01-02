@@ -103,6 +103,9 @@ class VaspSingleRunManager(object):
         self._batch_script_template = None
         self.batch_script_template = batch_script_template
 
+        #: Unsupported keyword arguments
+        self.kwargs = kwargs
+
     @property
     def structure_file(self):
         return self._structure_file
@@ -202,6 +205,10 @@ class VaspSingleRunManager(object):
                 raise VaspRunManagerError(error_message)
             self._batch_script_template = template
 
+    @property
+    def scheduler_script_name(self):
+        return 'waspy_single__{}.q'.format(os.path.splitext(os.path.basename(self.batch_script_template))[0])
+
     def _get_batch_script(self):
         settings = {**self.host_scheduler_settings}
         settings.update(self.custom_scheduler_settings)
@@ -280,13 +287,23 @@ class VaspSingleRunManager(object):
             E- write the StaticWorkflowData.pickle file with all the necessary data
         4- touch empty file called DONE if everything is done?
         """
+        if not os.path.isdir(self.run_location):
+            os.makedirs(self.run_location)
 
-        # read in calculation settings
-        # update with nondefault calculation settings, if any
-        # generate_VASP_input
-        # run VASP
-        # extract data
-        # did it electronically converge?
+        calc_sett = {**DEFAULT_VASP_INCAR_SETTINGS['static']}
+        calc_sett.update(self.custom_calculation_settings)
+
+        calc_dir = os.path.join(self.run_location, self.structure.structural_formula)
+
+        ig = VaspInputGenerator(structure=self.structure,
+                                calculation_settings=calc_sett,
+                                write_location=calc_dir,
+                                **self.kwargs
+                                )
+        ig.write_vasp_input_files()
+
+        with open(os.path.join(calc_dir, self.scheduler_script_name), 'w') as fw:
+            fw.write(self.batch_script)
 
 
     def generate_VASP_input():
