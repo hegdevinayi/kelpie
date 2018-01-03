@@ -6,6 +6,26 @@ import argparse
 import json
 
 
+def _validate_input_structure_file(arg_parser, structure_file, manager_params):
+    if not structure_file:
+        if not manager_params.get('structure_file', None):
+            error_message = 'Structure file not specified'
+            arg_parser.error(error_message)
+
+
+def parse_and_curate_arguments(arg_parser):
+    args = arg_parser.parse_args()
+    # if a parameters file is specified, load all the parameters and the values
+    manager_params = {}
+    if args.params:
+        with open(args.params, 'r') as fr:
+            manager_params = json.load(fr)
+    # check if a structure has been specifies either as a command-line argument
+    # or as part of the parameters for the run manager
+    _validate_input_structure_file(arg_parser, args.structure, manager_params)
+    return args, manager_params
+
+
 def main():
 
     description = """Command line interface to waspy."""
@@ -44,28 +64,14 @@ See documentation for the corresponding run managers for a list of arguments:
                             default=None,
                             help=params_help)
 
-    args = arg_parser.parse_args()
-
-    # if a parameters file is specified, load all the parameters and the values
-    manager_params = {}
-    if args.params:
-        with open(args.params, 'r') as fr:
-            manager_params = json.load(fr)
-
-    # check if a structure file is specified
-    structure_file = args.structure
-    if not structure_file:
-        structure_file = manager_params.get('structure_file', None)
-    if not structure_file:
-        error_message = 'Structure file not specified'
-        arg_parser.error(error_message)
+    args, manager_params = parse_and_curate_arguments(arg_parser)
 
     if args.mode == 'multiple':
-        error_message = 'Mode {} not implemented yet'
+        error_message = 'Mode "{}" not implemented yet'.format(args.mode)
         raise NotImplementedError(error_message)
 
     elif args.mode == 'single':
-        vrm = VaspSingleRunManager(structure_file=structure_file,
+        vrm = VaspSingleRunManager(structure_file=args.structure,
                                    **manager_params)
         vrm.vasp_static_workflow()
 

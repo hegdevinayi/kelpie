@@ -266,7 +266,8 @@ class VaspSingleRunManager(object):
 
     def run_vasp(self, calc_dir):
         with _change_dir(calc_dir):
-            return subprocess.run(self._mpi_call.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            mpi_call = self._mpi_call()
+            return subprocess.run(mpi_call.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     def vasp_static_workflow(self):
         """Workflow for performing a single SCF calculation using VASP.
@@ -287,9 +288,7 @@ class VaspSingleRunManager(object):
         calc_sett.update(self.custom_calculation_settings)
         calc_dir = os.path.join(self.run_location, self._time_stamped_folder('static'))
         self._write_job_files(calc_sett, calc_dir)
-        vrun = self.run_vasp(calc_dir)
-        print(vrun.stdout)
-        print(vrun.stderr)
+        self.run_vasp(calc_dir)
 
     def vasp_relaxation_workflow(self):
         """Workflow for performing a relaxation run using VASP. A final SCF is always run.
