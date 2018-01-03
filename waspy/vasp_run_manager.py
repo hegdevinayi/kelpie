@@ -38,13 +38,14 @@ class VaspSingleRunManager(object):
                  custom_scheduler_settings=None,
                  batch_script_template=None,
                  **kwargs):
-        """
+        """Constructor.
+
         :param structure_file: String with the location of the VASP5 POSCAR file.
                                (Default: './POSCAR')
         :param calculation_workflow: String with type of DFT calculation (relaxation/static/hse/...).
                                      (Default: "relaxation")
-        :param custom_calculation_settings: Dictionary of *nondefault* INCAR, POTCAR settings for each calculation type.
-                                            (The default settings dictionary will be updated)
+        :param custom_calculation_settings: Dictionary of *nondefault* INCAR, POTCAR settings for each
+                                            calculation type. (The default settings dictionary will be updated.)
                                             - e.g. {"relaxation": {"ediff": 1E-8, "nsw": 80}, "static": {"sigma": 0.1}}
                                             (Default: None)
         :param run_location: String with the location where VASP calculations should be performed.
