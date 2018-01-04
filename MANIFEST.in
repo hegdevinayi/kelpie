@@ -1,5 +1,4 @@
 include LICENSE
-include VERSION
 recursive-include tests *.py *.q *.json
 recursive-include tests/sample_vasp_* *
 recursive-include bin *

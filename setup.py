@@ -1,16 +1,15 @@
 from setuptools import setup, find_packages
 import os
+from waspy import __version__
 
-
-with open(os.path.join(os.path.dirname(__file__), 'VERSION'), 'r') as fr:
-    version = fr.read().strip()
 
 with open(os.path.join(os.path.dirname(__file__), 'README.md'), 'r') as fr:
     long_description = fr.read()
 
+
 setup(
     name='waspy',
-    version=version,
+    version=__version__,
     description='A Python-based project for cluster-side management of VASP runs',
     long_description=long_description,
     url='https://gitlab.com/hegdevinayi/waspy',
