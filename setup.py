@@ -16,7 +16,7 @@ setup(
     url='https://gitlab.com/hegdevinayi/waspy',
     author='Vinay Hegde',
     author_email='hegdevinayi@gmail.com',
-    license='LICENSE',
+    license='MIT',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Programming Language :: Python :: 2',
