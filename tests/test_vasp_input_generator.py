@@ -40,7 +40,7 @@ class TestVaspInputGenerator(unittest.TestCase):
 
     def test_get_vasp_potcar_normal(self):
         self.assertIsInstance(self.ig.POTCAR, str)
-        with open(os.path.join(sample_vasp_input_dir, 'POTCAR.LiMnO', 'r')) as fr:
+        with open(os.path.join(sample_vasp_input_dir, 'POTCAR.LiMnO'), 'r') as fr:
             self.assertEqual(self.ig.POTCAR, fr.read())
 
     def test_get_vasp_potcar_different_label(self):

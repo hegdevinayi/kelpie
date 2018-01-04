@@ -31,7 +31,7 @@ class TestVaspSingleRunManager(unittest.TestCase):
                                  calculation_workflow='hse')
 
     def test_run_location_not_specified(self):
-        self.assertEqual(self.vrm.run_location, 'sample_vasp_input')
+        self.assertEqual(self.vrm.run_location, sample_vasp_input_dir)
 
     def test_host_scheduler_settings_not_specified(self):
         from waspy.scheduler_settings import DEFAULT_SCHEDULER_SETTINGS
