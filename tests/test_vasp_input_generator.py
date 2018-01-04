@@ -1,5 +1,9 @@
+import os
 import unittest
 from waspy.vasp_input_generator import VaspInputGenerator, VaspInputError
+
+
+sample_vasp_input_dir = os.path.join(os.path.dirname(__file__), 'sample_vasp_input')
 
 
 class TestVaspInputGenerator(unittest.TestCase):
@@ -7,11 +11,11 @@ class TestVaspInputGenerator(unittest.TestCase):
 
     def test_structure_setter(self):
         from waspy import io
-        s = io.read_poscar('sample_vasp_input/POSCAR.all_OK')
+        s = io.read_poscar(os.path.join(sample_vasp_input_dir, 'POSCAR.all_OK'))
         ig = VaspInputGenerator(structure=s)
         self.assertEqual(ig.structure, s)
 
-    ig = VaspInputGenerator(structure='sample_vasp_input/POSCAR.all_OK')
+    ig = VaspInputGenerator(structure=os.path.join(sample_vasp_input_dir, 'POSCAR.all_OK'))
 
     def test_structure_setter_error(self):
         with self.assertRaises(VaspInputError):
@@ -36,16 +40,16 @@ class TestVaspInputGenerator(unittest.TestCase):
 
     def test_get_vasp_potcar_normal(self):
         self.assertIsInstance(self.ig.POTCAR, str)
-        with open('sample_vasp_input/POTCAR.LiMnO', 'r') as fr:
+        with open(os.path.join(sample_vasp_input_dir, 'POTCAR.LiMnO', 'r')) as fr:
             self.assertEqual(self.ig.POTCAR, fr.read())
 
     def test_get_vasp_potcar_different_label(self):
         from waspy.vasp_settings.incar import DEFAULT_VASP_INCAR_SETTINGS
         calc_sett = DEFAULT_VASP_INCAR_SETTINGS['relaxation']
         calc_sett['potcar_settings'].update({'element_potcars': {'Mn1': 'Mn_pv', 'Mn2': 'Mn'}})
-        ig = VaspInputGenerator(structure='sample_vasp_input/POSCAR.structure_OK',
+        ig = VaspInputGenerator(structure=os.path.join(sample_vasp_input_dir, 'POSCAR.structure_OK'),
                                 calculation_settings=calc_sett)
-        with open('sample_vasp_input/Li_sv__Mn_pv__Mn__O.POTCAR') as fr:
+        with open(os.path.join(sample_vasp_input_dir, 'Li_sv__Mn_pv__Mn__O.POTCAR')) as fr:
             self.assertEqual(ig.POTCAR, fr.read())
 
     def test_get_highest_enmax(self):
@@ -64,7 +68,6 @@ class TestVaspInputGenerator(unittest.TestCase):
         self.assertEqual(self.ig.INCAR.split('\n')[0], '### general ###')
 
     def test_write_vasp_input_files(self):
-        import os
         import shutil
         self.ig.write_vasp_input_files()
         self.assertTrue(os.path.isdir('Li6Mn2O7'))

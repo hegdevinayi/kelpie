@@ -1,5 +1,9 @@
+import os
 import unittest
 from waspy import io
+
+
+sample_vasp_input_dir = os.path.join(os.path.dirname(__file__), 'sample_vasp_input')
 
 
 def _poscar_lines(poscar_file):
@@ -12,7 +16,7 @@ class TestIOReadPOSCAR(unittest.TestCase):
     """Base class to test `io.read_poscar()`"""
 
     def setUp(self):
-        self.poscar_OK = 'sample_vasp_input/POSCAR.structure_OK'
+        self.poscar_OK = os.path.join(sample_vasp_input_dir, 'POSCAR.structure_OK')
 
     def test_poscar_file_not_found(self):
         with self.assertRaises(FileNotFoundError):
@@ -20,7 +24,7 @@ class TestIOReadPOSCAR(unittest.TestCase):
 
     def test_consistent_number_of_atoms(self):
         self.assertTrue(io._consistent_number_of_atoms(_poscar_lines(self.poscar_OK)))
-        error_poscar = 'sample_vasp_input/POSCAR.consistent_number_of_atoms_error'
+        error_poscar = os.path.join(sample_vasp_input_dir, 'POSCAR.consistent_number_of_atoms_error')
         self.assertFalse(io._consistent_number_of_atoms(_poscar_lines(error_poscar)))
 
     def test_system_title(self):
@@ -28,7 +32,7 @@ class TestIOReadPOSCAR(unittest.TestCase):
 
     def test_scaling_constant(self):
         self.assertEqual(io._scaling_constant(_poscar_lines(self.poscar_OK)), 1.0)
-        error_poscar = 'sample_vasp_input/POSCAR.scaling_factor_error'
+        error_poscar = os.path.join(sample_vasp_input_dir, 'POSCAR.scaling_factor_error')
         with self.assertRaises(io.WaspyIOError):
             io._scaling_constant(_poscar_lines(error_poscar))
 
@@ -38,21 +42,21 @@ class TestIOReadPOSCAR(unittest.TestCase):
         self.assertEqual(len(lattice_vectors), 3)
         self.assertEqual(len(lattice_vectors[2]), 3)
         self.assertAlmostEqual(lattice_vectors[0], [-4.1048998, -2.0524499, 2.0524499])
-        error_poscar = 'sample_vasp_input/POSCAR.lattice_vectors_error'
+        error_poscar = os.path.join(sample_vasp_input_dir, 'POSCAR.lattice_vectors_error')
         with self.assertRaises(io.WaspyIOError):
             io._lattice_vectors(_poscar_lines(error_poscar))
 
     def test_list_of_species(self):
         self.assertIsInstance(io._list_of_species(_poscar_lines(self.poscar_OK)), list)
         self.assertEqual(io._list_of_species(_poscar_lines(self.poscar_OK)), ['Li', 'Mn1', 'Mn2', 'O'])
-        error_poscar = 'sample_vasp_input/POSCAR.list_of_species_error'
+        error_poscar = os.path.join(sample_vasp_input_dir, 'POSCAR.list_of_species_error')
         with self.assertRaises(io.WaspyIOError):
             io._list_of_species(_poscar_lines(error_poscar))
 
     def test_list_of_number_of_atoms(self):
         self.assertIsInstance(io._list_of_number_of_atoms(_poscar_lines(self.poscar_OK)), list)
         self.assertEqual(io._list_of_number_of_atoms(_poscar_lines(self.poscar_OK)), [6, 1, 1, 7])
-        error_poscar = 'sample_vasp_input/POSCAR.list_of_number_of_atoms_error'
+        error_poscar = os.path.join(sample_vasp_input_dir, 'POSCAR.list_of_number_of_atoms_error')
         with self.assertRaises(io.WaspyIOError):
             io._list_of_number_of_atoms(_poscar_lines(error_poscar))
 
@@ -62,10 +66,10 @@ class TestIOReadPOSCAR(unittest.TestCase):
 
     def test_coordinate_system(self):
         self.assertEqual(io._coordinate_system(_poscar_lines(self.poscar_OK)), 'Direct')
-        error_poscar = 'sample_vasp_input/POSCAR.selective_dynamics_error'
+        error_poscar = os.path.join(sample_vasp_input_dir, 'POSCAR.selective_dynamics_error')
         with self.assertRaises(NotImplementedError):
             io._coordinate_system(_poscar_lines(error_poscar))
-        error_poscar = 'sample_vasp_input/POSCAR.coordinate_system_error'
+        error_poscar = os.path.join(sample_vasp_input_dir, 'POSCAR.coordinate_system_error')
         with self.assertRaises(io.WaspyIOError):
             io._coordinate_system(_poscar_lines(error_poscar))
 
@@ -74,7 +78,7 @@ class TestIOReadPOSCAR(unittest.TestCase):
         self.assertEqual(len(list_of_atomic_coordinates), 15)
         self.assertEqual(len(list_of_atomic_coordinates[2]), 3)
         self.assertAlmostEqual(list_of_atomic_coordinates[14][0], 0.74999999)
-        error_poscar = 'sample_vasp_input/POSCAR.list_of_atomic_coordinates_error'
+        error_poscar = os.path.join(sample_vasp_input_dir, 'POSCAR.list_of_atomic_coordinates_error')
         with self.assertRaises(io.WaspyIOError):
             io._list_of_atomic_coordinates(_poscar_lines(error_poscar))
 
