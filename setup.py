@@ -25,7 +25,7 @@ setup(
         'Programming Language :: Python :: 3.6',
     ],
     keywords='VASP DFT supercomputer high-throughput',
-    packages=find_packages(),
+    packages=find_packages(exclude=['tests*', 'docs']),
     install_requires=[
         'beautifulsoup4',
         'numpy'
