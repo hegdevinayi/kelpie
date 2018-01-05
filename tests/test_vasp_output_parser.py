@@ -5,7 +5,6 @@ import bs4
 sample_vasp_output_dir = os.path.join(os.path.dirname(__file__), 'sample_vasp_output')
 
 
-@unittest.skip
 class TestVasprunXMLParserStatic(unittest.TestCase):
 
     def test_xml_to_soup_ungzipped(self):
