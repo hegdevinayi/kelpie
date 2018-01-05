@@ -1,6 +1,6 @@
 import numpy
 from collections import defaultdict
-from waspy.data import STD_ATOMIC_WEIGHTS
+from kelpie.data import STD_ATOMIC_WEIGHTS
 
 
 class AtomError(Exception):
@@ -103,7 +103,7 @@ class Structure(object):
 
         :param scaling_constant: Float to scale all the lattice vectors with. Defaults to 1.0
         :param lattice_vectors: A 3x3 Iterable of Float with the cell vectors.
-        :param atoms: List of `waspy.Atom' objects.
+        :param atoms: List of `kelpie.Atom' objects.
         :param coordinate_system: String specifying the coordinate system ("Cartesian"/"Direct")
         """
 
@@ -187,7 +187,7 @@ class Structure(object):
             self._atoms = []
             return
         if not all([isinstance(atom, Atom) for atom in atoms]):
-            error_message = '`atoms` must be an iterable of `waspy.Atom` objects'
+            error_message = '`atoms` must be an iterable of `kelpie.Atom` objects'
             raise StructureError(error_message)
         self._atoms = atoms
 
@@ -196,7 +196,7 @@ class Structure(object):
 
         :raise StructureError: if `atom` is not a `structure.Atom` object."""
         if not isinstance(atom, Atom):
-            error_message = '`atom` must be a `waspy.structure.Atom` object'
+            error_message = '`atom` must be a `kelpie.structure.Atom` object'
             raise StructureError(error_message)
         self._atoms.append(atom)
 

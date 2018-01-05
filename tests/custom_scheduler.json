@@ -1,6 +1,6 @@
 {
   "submit_cmd": "sbatch",
-  "job-name": "waspy",
+  "job-name": "kelpie",
   "partition": "regular",
   "qos": "normal",
   "account": "1673",

@@ -3,12 +3,12 @@ import subprocess
 import datetime
 from contextlib import contextmanager
 import json
-from waspy import io
-from waspy.scheduler_settings import DEFAULT_SCHEDULER_SETTINGS
-from waspy.scheduler_templates import SCHEDULER_TEMPLATES
-from waspy.vasp_settings.incar import DEFAULT_VASP_INCAR_SETTINGS
-from waspy.vasp_input_generator import VaspInputGenerator
-from waspy.vasp_output_parser import VasprunXMLParser
+from kelpie import io
+from kelpie.scheduler_settings import DEFAULT_SCHEDULER_SETTINGS
+from kelpie.scheduler_templates import SCHEDULER_TEMPLATES
+from kelpie.vasp_settings.incar import DEFAULT_VASP_INCAR_SETTINGS
+from kelpie.vasp_input_generator import VaspInputGenerator
+from kelpie.vasp_output_parser import VasprunXMLParser
 
 
 @contextmanager
@@ -52,7 +52,7 @@ class VaspSingleRunManager(object):
                              (Default: location of the specified `structure_file`)
         :param host_scheduler_settings: String with the name of a predefined host or path to a JSON file with the
                                         scheduler settings. Must be one of the hosts defined in
-                                        `waspy.scheduler_settings` (with a corresponding
+                                        `kelpie.scheduler_settings` (with a corresponding
                                         "[host_scheduler_tag].json" file) OR path to a JSON file with settings.
                                         Path to a JSON file takes precedence.
                                         E.g. "cori_knl", "cori_haswell" (predefined) OR "/path/to/settings.json"
@@ -83,7 +83,7 @@ class VaspSingleRunManager(object):
         """
 
         #: VASP POSCAR file containing the structure (only VASP 5 format currently supported).
-        #: `waspy.structure.Structure` object containing VASP POSCAR data.
+        #: `kelpie.structure.Structure` object containing VASP POSCAR data.
         self._structure_file = None
         self._structure = None
         self.structure_file = structure_file
@@ -93,9 +93,9 @@ class VaspSingleRunManager(object):
         self.calculation_workflow = calculation_workflow
 
         #: Nondefault INCAR settings and POTCAR choices for different calculation types
-        #: default INCAR, POTCAR settings defined by `waspy.vasp_settings.incar.DEFAULT_VASP_INCAR_SETTINGS` for the
+        #: default INCAR, POTCAR settings defined by `kelpie.vasp_settings.incar.DEFAULT_VASP_INCAR_SETTINGS` for the
         # calculation workflow specified.
-        #: VASP recommended POTCARs used by default are in `waspy.vasp_settings.potcar.VASP_RECO_POTCARS`.
+        #: VASP recommended POTCARs used by default are in `kelpie.vasp_settings.potcar.VASP_RECO_POTCARS`.
         self._custom_calculation_settings = None
         self.custom_calculation_settings = custom_calculation_settings
 
@@ -105,7 +105,7 @@ class VaspSingleRunManager(object):
 
         #: Dictionary of batch scheduler settings corresponding to the host where the calculations are being run. Can
         #  be path a JSON file with the settings OR one of the predefined tags in
-        # `waspy.scheduler_settings.DEFAULT_SCHEDULER_SETTINGS`. File takes precedence.
+        # `kelpie.scheduler_settings.DEFAULT_SCHEDULER_SETTINGS`. File takes precedence.
         self._host_scheduler_settings = None
         self.host_scheduler_settings = host_scheduler_settings
 
@@ -221,7 +221,7 @@ class VaspSingleRunManager(object):
 
     @property
     def scheduler_script_name(self):
-        return 'waspy_single__{}.q'.format(os.path.splitext(os.path.basename(self.batch_script_template))[0])
+        return 'kelpie_single__{}.q'.format(os.path.splitext(os.path.basename(self.batch_script_template))[0])
 
     def _get_batch_script(self):
         settings = {**self.host_scheduler_settings}

@@ -1,10 +1,10 @@
 import unittest
-from waspy.structure import Atom, AtomError
-from waspy.structure import Structure, StructureError
+from kelpie.structure import Atom, AtomError
+from kelpie.structure import Structure, StructureError
 
 
 class TestAtom(unittest.TestCase):
-    """Base class to test waspy.structure.Atom class"""
+    """Base class to test kelpie.structure.Atom class"""
 
     def test_no_coordinate(self):
         with self.assertRaises(AtomError):
@@ -42,7 +42,7 @@ class TestAtom(unittest.TestCase):
 
 
 class TestStructure(unittest.TestCase):
-    """Base class to test waspy.structure.Structure class"""
+    """Base class to test kelpie.structure.Structure class"""
 
     def setUp(self):
         self.structure = Structure()

@@ -1,10 +1,10 @@
 import os
-from waspy.structure import Atom
-from waspy.structure import Structure
-from waspy.data import STD_ATOMIC_WEIGHTS
+from kelpie.structure import Atom
+from kelpie.structure import Structure
+from kelpie.data import STD_ATOMIC_WEIGHTS
 
 
-class WaspyIOError(Exception):
+class KelpieIOError(Exception):
     """Base class for I/O related error handling."""
     pass
 
@@ -13,7 +13,7 @@ def read_poscar(poscar_file='POSCAR'):
     """
     :param poscar_file: Location of the VASP POSCAR (version 5) file
                         NOTE: Names of all species (line 6) need to begin with the symbol of a real element.
-    :return: `waspy.structure.Structure` object
+    :return: `kelpie.structure.Structure` object
     """
     if not os.path.isfile(poscar_file):
         error_message = 'Specified POSCAR file {} not found'.format(poscar_file)
@@ -24,7 +24,7 @@ def read_poscar(poscar_file='POSCAR'):
 
     if not _consistent_number_of_atoms(poscar_lines):
         error_message = 'Mismatch between the number of atoms (Line 7) and the number of atomic coordinates (Lines 9-)'
-        raise WaspyIOError(error_message)
+        raise KelpieIOError(error_message)
 
     poscar_blocks = ['system_title',
                      'scaling_constant',
@@ -69,13 +69,13 @@ def _scaling_constant(poscar_lines):
     """ Parse the scaling constant for the structure (line 2).
 
     :return: Float with the scaling constant
-    :raise WaspyIOError: if the scaling constant cannot be converted to float
+    :raise KelpieIOError: if the scaling constant cannot be converted to float
     """
     try:
         scaling_constant = float(poscar_lines[1])
     except ValueError:
         error_message = 'Scaling factor (Line 2 in POSCAR) should be float'
-        raise WaspyIOError(error_message)
+        raise KelpieIOError(error_message)
     else:
         return scaling_constant
 
@@ -84,7 +84,7 @@ def _lattice_vectors(poscar_lines):
     """Parse the lattice vectors of the structure (lines 3-5).
 
     :return: 3x3-shaped List of Float with the lattice vectors [[a11, a12, a13], [a21, a22, a23], ...]
-    :raise WaspyIOError: if any lattice vector component cannot be converted to float
+    :raise KelpieIOError: if any lattice vector component cannot be converted to float
     """
     lattice_vectors = []
     try:
@@ -92,7 +92,7 @@ def _lattice_vectors(poscar_lines):
             lattice_vectors.append([float(a) for a in line.split()])
     except ValueError:
         error_message = 'Lattice vector components (Lines 3-5) should be floating point'
-        raise WaspyIOError(error_message)
+        raise KelpieIOError(error_message)
     else:
         return lattice_vectors
 
@@ -101,14 +101,14 @@ def _list_of_species(poscar_lines):
     """Parse the species in the structure (line 6).
 
     :return: List of String with the species symbols
-    :raise WaspyIOError: if any of the species names contains only integers
+    :raise KelpieIOError: if any of the species names contains only integers
     """
     species_list = poscar_lines[5].split()
     for species in species_list:
         if not any([species.startswith(e) for e in STD_ATOMIC_WEIGHTS]):
             error_message = 'All species names (Line 6) must begin with the symbol of a real element.'
             error_message += '\nNOTE: Only VASP 5 POSCAR format is supported'
-            raise WaspyIOError(error_message)
+            raise KelpieIOError(error_message)
     return species_list
 
 
@@ -116,13 +116,13 @@ def _list_of_number_of_atoms(poscar_lines):
     """Parse the number of atoms of each species in the structure (line 7).
 
     :return: List of Int with the number of atoms of each species
-    :raise WaspyIOError: if any of the number of atoms cannot be converted to int
+    :raise KelpieIOError: if any of the number of atoms cannot be converted to int
     """
     try:
         list_of_number_of_atoms = [int(n) for n in poscar_lines[6].split()]
     except ValueError:
         error_message = 'Number of atoms of each species (Line 7) should be integers'
-        raise WaspyIOError(error_message)
+        raise KelpieIOError(error_message)
     else:
         return list_of_number_of_atoms
 
@@ -140,7 +140,7 @@ def _coordinate_system(poscar_lines):
 
     :return: "Direct" or "Cartesian"
     :raise NotImplementedError: for Selective Dynamics
-    :raise WaspyIOError: if coordinate system is not VASP-recognizable
+    :raise KelpieIOError: if coordinate system is not VASP-recognizable
     """
     coordinate_system = poscar_lines[7]
     first_char = coordinate_system.lower()[0]  # VASP only recognizes the first character
@@ -153,7 +153,7 @@ def _coordinate_system(poscar_lines):
         raise NotImplementedError(error_message)
     else:
         error_message = 'Coordinate system (Line 8) can only be direct or cartesian'
-        raise WaspyIOError(error_message)
+        raise KelpieIOError(error_message)
 
 
 def _list_of_atomic_coordinates(poscar_lines):
@@ -161,7 +161,7 @@ def _list_of_atomic_coordinates(poscar_lines):
     Parse all the atomic coordinates (line 9-(9+number of atoms)).
 
     :return: Nx3-shaped List of Float with the atomic coordinates [[c11, c12, c13], [c21, c22, c23], ...]
-    :raise WaspyIOError: if any atomic coordinate component cannot be converted to float
+    :raise KelpieIOError: if any atomic coordinate component cannot be converted to float
     """
     atomic_coordinates = []
     for i, line in enumerate(poscar_lines[8:]):
@@ -171,7 +171,7 @@ def _list_of_atomic_coordinates(poscar_lines):
             coord = [float(c) for c in line.split()[:3]]
         except ValueError:
             error_message = 'Check the atomic coordinates block (Line {}) for non-float values'.format(9+i)
-            raise WaspyIOError(error_message)
+            raise KelpieIOError(error_message)
         else:
             atomic_coordinates.append(coord)
         if i == sum(_list_of_number_of_atoms(poscar_lines))-1:

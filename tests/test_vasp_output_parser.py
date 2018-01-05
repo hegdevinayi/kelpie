@@ -9,21 +9,21 @@ sample_vasp_output_dir = os.path.join(os.path.dirname(__file__), 'sample_vasp_ou
 class TestVasprunXMLParserStatic(unittest.TestCase):
 
     def test_xml_to_soup_ungzipped(self):
-        from waspy import vasp_output_parser as parser
+        from kelpie import vasp_output_parser as parser
         ungzipped_xml_file = os.path.join(sample_vasp_output_dir, 'vasprun.xml')
         self.assertIsInstance(parser.VasprunXMLParser._xml_to_soup(ungzipped_xml_file), bs4.BeautifulSoup)
 
     def test_xml_to_soup_gzipped(self):
-        from waspy import vasp_output_parser as parser
+        from kelpie import vasp_output_parser as parser
         gzipped_xml_file = os.path.join(sample_vasp_output_dir, 'vasprun.xml.gz')
         self.assertIsInstance(parser.VasprunXMLParser._xml_to_soup(gzipped_xml_file), bs4.BeautifulSoup)
 
 
 class TestVasprunXMLParser(unittest.TestCase):
-    """Base class to test waspy.vasp_output_parser.VasprunXMLParser class."""
+    """Base class to test kelpie.vasp_output_parser.VasprunXMLParser class."""
 
     def setUp(self):
-        from waspy import vasp_output_parser as parser
+        from kelpie import vasp_output_parser as parser
         self.vxparser = parser.VasprunXMLParser(os.path.join(sample_vasp_output_dir, 'vasprun.xml'))
 
     def test_read_composition_information(self):

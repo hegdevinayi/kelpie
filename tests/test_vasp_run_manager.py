@@ -1,6 +1,6 @@
 import os
 import unittest
-from waspy.vasp_run_manager import VaspSingleRunManager, VaspRunManagerError
+from kelpie.vasp_run_manager import VaspSingleRunManager, VaspRunManagerError
 
 
 sample_vasp_input_dir = os.path.join(os.path.dirname(__file__), 'sample_vasp_input')
@@ -18,7 +18,7 @@ class TestVaspSingleRunManager(unittest.TestCase):
             VaspSingleRunManager(structure_file='non_existent_POSCAR')
 
     def test_structure(self):
-        from waspy import io
+        from kelpie import io
         s = io.read_poscar(poscar_file=os.path.join(sample_vasp_input_dir, 'POSCAR.all_OK'))
         self.assertEqual(self.vrm.structure.POSCAR, s.POSCAR)
 
@@ -34,7 +34,7 @@ class TestVaspSingleRunManager(unittest.TestCase):
         self.assertEqual(self.vrm.run_location, sample_vasp_input_dir)
 
     def test_host_scheduler_settings_not_specified(self):
-        from waspy.scheduler_settings import DEFAULT_SCHEDULER_SETTINGS
+        from kelpie.scheduler_settings import DEFAULT_SCHEDULER_SETTINGS
         self.assertEqual(self.vrm.host_scheduler_settings, DEFAULT_SCHEDULER_SETTINGS['cori_knl'])
 
     def test_host_scheduler_settings_path_to_file(self):
@@ -54,7 +54,7 @@ class TestVaspSingleRunManager(unittest.TestCase):
                                  host_scheduler_settings='quest')
 
     def test_batch_script_template_not_specified(self):
-        from waspy.scheduler_templates import SCHEDULER_TEMPLATES
+        from kelpie.scheduler_templates import SCHEDULER_TEMPLATES
         self.assertEqual(self.vrm.batch_script_template, SCHEDULER_TEMPLATES['cori'])
 
     def test_batch_script_template_path_to_file(self):
@@ -64,7 +64,7 @@ class TestVaspSingleRunManager(unittest.TestCase):
         self.assertEqual(vrm.batch_script_template, custom_file)
 
     def test_batch_script_template_nondefault_tag(self):
-        from waspy.scheduler_templates import SCHEDULER_TEMPLATES
+        from kelpie.scheduler_templates import SCHEDULER_TEMPLATES
         vrm = VaspSingleRunManager(structure_file=os.path.join(sample_vasp_input_dir, 'POSCAR.all_OK'),
                                    batch_script_template='quest')
         self.assertEqual(vrm.batch_script_template, SCHEDULER_TEMPLATES['quest'])

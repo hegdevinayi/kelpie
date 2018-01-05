@@ -1,16 +1,16 @@
 import os
 import unittest
-from waspy.vasp_input_generator import VaspInputGenerator, VaspInputError
+from kelpie.vasp_input_generator import VaspInputGenerator, VaspInputError
 
 
 sample_vasp_input_dir = os.path.join(os.path.dirname(__file__), 'sample_vasp_input')
 
 
 class TestVaspInputGenerator(unittest.TestCase):
-    """Base class to test waspy.vasp_input_generator.VaspInputGenerator class."""
+    """Base class to test kelpie.vasp_input_generator.VaspInputGenerator class."""
 
     def test_structure_setter(self):
-        from waspy import io
+        from kelpie import io
         s = io.read_poscar(os.path.join(sample_vasp_input_dir, 'POSCAR.all_OK'))
         ig = VaspInputGenerator(structure=s)
         self.assertEqual(ig.structure, s)
@@ -44,7 +44,7 @@ class TestVaspInputGenerator(unittest.TestCase):
             self.assertEqual(self.ig.POTCAR, fr.read())
 
     def test_get_vasp_potcar_different_label(self):
-        from waspy.vasp_settings.incar import DEFAULT_VASP_INCAR_SETTINGS
+        from kelpie.vasp_settings.incar import DEFAULT_VASP_INCAR_SETTINGS
         calc_sett = DEFAULT_VASP_INCAR_SETTINGS['relaxation']
         calc_sett['potcar_settings'].update({'element_potcars': {'Mn1': 'Mn_pv', 'Mn2': 'Mn'}})
         ig = VaspInputGenerator(structure=os.path.join(sample_vasp_input_dir, 'POSCAR.structure_OK'),

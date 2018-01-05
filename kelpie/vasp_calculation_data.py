@@ -1,5 +1,5 @@
 import os
-from waspy.vasp_output_parser import VasprunXMLParser
+from kelpie.vasp_output_parser import VasprunXMLParser
 
 
 class VaspCalculationError(Exception):

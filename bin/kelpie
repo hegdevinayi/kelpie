@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from waspy.vasp_run_manager import *
+from kelpie.vasp_run_manager import *
 import argparse
 import json
 
@@ -28,12 +28,12 @@ def parse_and_curate_arguments(arg_parser):
 
 def main():
 
-    description = """Command line interface to waspy."""
-    arg_parser = argparse.ArgumentParser(prog='waspy',
+    description = """Command line interface to kelpie."""
+    arg_parser = argparse.ArgumentParser(prog='kelpie',
                                          description=description,
                                          formatter_class=argparse.RawTextHelpFormatter)
 
-    mode_help = """Mode to run waspy in.
+    mode_help = """Mode to run kelpie in.
 single: One structure to be calculated.
 multiple: More than one structure to calculate in a single batch job.
           Typically, used only when all the structures are expected to take
@@ -57,8 +57,8 @@ parameters is specified, and if provided overrides value(s) in the file.)
     params_help = """Location of the JSON file with a Dictionary of parameters
 as keys and their values. Will be passed directly to one of the run managers.
 See documentation for the corresponding run managers for a list of arguments:
-"single" mode: help(waspy.vasp_run_manager.VaspSingleRunManager)
-"multiple" mode: help(waspy.vasp_run_manager.VaspMultipleRunManager)
+"single" mode: help(kelpie.vasp_run_manager.VaspSingleRunManager)
+"multiple" mode: help(kelpie.vasp_run_manager.VaspMultipleRunManager)
 """
     arg_parser.add_argument('-p', '--params',
                             default=None,
