@@ -1,0 +1,18 @@
+# GitLab CI
+
+image: python:latest
+
+before_script:
+    - python --version
+
+stages:
+    - build
+    - test
+
+build:
+    stage: build
+    script: python setup.py sdist bdist_wheel
+
+test:
+    stage: test
+    script: python setup.py test
