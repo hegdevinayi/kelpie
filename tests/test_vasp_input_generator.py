@@ -6,6 +6,7 @@ from kelpie.vasp_input_generator import VaspInputGenerator, VaspInputError
 sample_vasp_input_dir = os.path.join(os.path.dirname(__file__), 'sample_vasp_input')
 
 
+@unittest.skip
 class TestVaspInputGenerator(unittest.TestCase):
     """Base class to test kelpie.vasp_input_generator.VaspInputGenerator class."""
 
