@@ -11,3 +11,6 @@
 ulimit -s unlimited
 export OMP_NUM_THREADS=1
 
+{modules}
+
+kelpie_graze -m {mode} -i {input_structure} -p {params}

@@ -30,7 +30,7 @@ class VaspSingleRunManager(object):
     """Base class to manage VASP runs."""
 
     def __init__(self,
-                 structure_file=None,
+                 input_structure_file=None,
                  calculation_workflow=None,
                  custom_calculation_settings=None,
                  run_location=None,
@@ -40,8 +40,8 @@ class VaspSingleRunManager(object):
                  **kwargs):
         """Constructor.
 
-        :param structure_file: String with the location of the VASP5 POSCAR file.
-                               (Default: './POSCAR')
+        :param input_structure_file: String with the location of the VASP5 POSCAR file.
+                                     (Default: './POSCAR')
         :param calculation_workflow: String with type of DFT calculation (relaxation/static/hse/...).
                                      (Default: "relaxation")
         :param custom_calculation_settings: Dictionary of *nondefault* INCAR, POTCAR settings for each
@@ -84,9 +84,9 @@ class VaspSingleRunManager(object):
 
         #: VASP POSCAR file containing the structure (only VASP 5 format currently supported).
         #: `kelpie.structure.Structure` object containing VASP POSCAR data.
-        self._structure_file = None
-        self._structure = None
-        self.structure_file = structure_file
+        self._input_structure_file = None
+        self._input_structure = None
+        self.input_structure_file = input_structure_file
 
         #: Type of DFT calculation workflow: relaxation/static/hse/...
         self._calculation_workflow = None
@@ -120,21 +120,24 @@ class VaspSingleRunManager(object):
         #: Unsupported keyword arguments
         self.kwargs = kwargs
 
-    @property
-    def structure_file(self):
-        return self._structure_file
+        #: Time stamp for the run
+        self.time_stamp = datetime.datetime.now()
 
-    @structure_file.setter
-    def structure_file(self, structure_file):
-        if not structure_file:
-            error_message = '`structure_file` must be provided'
+    @property
+    def input_structure_file(self):
+        return self._input_structure_file
+
+    @input_structure_file.setter
+    def input_structure_file(self, input_structure_file):
+        if not input_structure_file:
+            error_message = '`input_structure_file` must be provided'
             raise VaspRunManagerError(error_message)
-        self._structure = io.read_poscar(poscar_file=structure_file)
-        self._structure_file = structure_file
+        self._input_structure = io.read_poscar(poscar_file=input_structure_file)
+        self._input_structure_file = input_structure_file
 
     @property
-    def structure(self):
-        return self._structure
+    def input_structure(self):
+        return self._input_structure
 
     @property
     def calculation_workflow(self):
@@ -167,7 +170,7 @@ class VaspSingleRunManager(object):
     @run_location.setter
     def run_location(self, run_location):
         if not run_location:
-            self._run_location = os.path.dirname(self.structure_file)
+            self._run_location = os.path.dirname(os.path.abspath(self.input_structure_file))
         else:
             self._run_location = run_location
 
@@ -240,20 +243,12 @@ class VaspSingleRunManager(object):
     def batch_script(self):
         return self._get_batch_script()
 
-    def _write_job_files(self, calc_sett, calc_dir):
-        ig = VaspInputGenerator(structure=self.structure,
-                                calculation_settings=calc_sett,
-                                write_location=calc_dir,
-                                **self.kwargs)
-        ig.write_vasp_input_files()
-        with open(os.path.join(calc_dir, self.scheduler_script_name), 'w') as fw:
-            fw.write(self.batch_script)
-
-    @staticmethod
-    def _time_stamped_folder(folder):
-        d = datetime.datetime.now()
-        ts_folder = '{}_{:4d}'.format(folder, d.year)
-        ts_folder += ('{:0>2d}'*5).format(d.month, d.day, d.hour, d.minute, d.second)
+    def _time_stamped_folder(self, folder):
+        y = self.time_stamp.year
+        M = self.time_stamp.month
+        d = self.time_stamp.day
+        m = self.time_stamp.minute
+        ts_folder = '{}_{:4d}{:0>2d}{:0>2d}{:0>2d}'.format(folder, y, M, d, m)
         return ts_folder
 
     def _mpi_call(self):
@@ -268,7 +263,37 @@ class VaspSingleRunManager(object):
     def run_vasp(self, calc_dir):
         with _change_dir(calc_dir):
             mpi_call = self._mpi_call()
-            return subprocess.run(mpi_call.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            subprocess.run(mpi_call.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    def _write_job_files(self, calc_sett, calc_dir):
+        ig = VaspInputGenerator(structure=self.input_structure,
+                                calculation_settings=calc_sett,
+                                write_location=calc_dir,
+                                **self.kwargs)
+        ig.write_vasp_input_files()
+        batch_script_path = os.path.join(calc_dir, self.scheduler_script_name)
+        with open(batch_script_path, 'w') as fw:
+            fw.write(self.batch_script)
+
+    def _submit_job(self, calc_dir):
+        settings = {**self.host_scheduler_settings}
+        settings.update(self.custom_scheduler_settings)
+        submit_cmd = settings.get('submit_cmd')
+        if not submit_cmd:
+            error_message = 'Submit command for the batch scheduler not specified'
+            raise VaspRunManagerError(error_message)
+        with _change_dir(calc_dir):
+            subprocess.run([submit_cmd, self.scheduler_script_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    def write_job_files(self, calc_type):
+        if not calc_type:
+            calc_type = self.calculation_workflow
+        if not os.path.isdir(self.run_location):
+            os.makedirs(self.run_location)
+        calc_sett = {**DEFAULT_VASP_INCAR_SETTINGS[calc_type]}
+        calc_sett.update(self.custom_calculation_settings)
+        calc_dir = os.path.join(self.run_location, self._time_stamped_folder(calc_type))
+        self._write_job_files(calc_sett, calc_dir)
 
     def vasp_static_workflow(self):
         """Workflow for performing a single SCF calculation using VASP.
@@ -282,13 +307,6 @@ class VaspSingleRunManager(object):
             E- write the StaticWorkflowData.pickle file with all the necessary data
         4- touch empty file called DONE if everything is done?
         """
-        if not os.path.isdir(self.run_location):
-            os.makedirs(self.run_location)
-
-        calc_sett = {**DEFAULT_VASP_INCAR_SETTINGS['static']}
-        calc_sett.update(self.custom_calculation_settings)
-        calc_dir = os.path.join(self.run_location, self._time_stamped_folder('static'))
-        self._write_job_files(calc_sett, calc_dir)
         self.run_vasp(calc_dir)
 
     def vasp_relaxation_workflow(self):
