@@ -1,95 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import argparse
+import sys
+from kelpie.arg_parser import KelpieArgumentParser
 import subprocess
 
 
-def main():
-    description = """Kelpie command line utility to generate input files and submit job."""
-    arg_parser = argparse.ArgumentParser(prog='kelpie',
-                                         description=description,
-                                         formatter_class=argparse.RawTextHelpFormatter)
-
-    mode_help = """Mode to run kelpie in:
-single: One structure to be calculated.
-multiple: More than one structure to calculate in a single batch job.
-          Typically, used only when all the structures are expected to take
-          similar amounts of time to run.
-"""
-    arg_parser.add_argument('-m', '--mode',
-                            default='single',
-                            choices=['single', 'multiple'],
-                            help=mode_help)
-
-    input_structure_help = """Location of the file with the structure to
-calculate. If there are more than one structure to be calculated (e.g.
-"multiple" mode), the location should be of a JSON file with the list of input
-structure files to calculate.
-"""
-    arg_parser.add_argument('-i', '--input-structure-file',
-                            default=None,
-                            required=True,
-                            help=input_structure_help)
-
-    host_scheduler_help = """Name of a predefined host or path to a JSON file
-with the scheduler settings. If a name is specified, must be one of the hosts
-defined in `kelpie.scheduler_settings` (i.e., with a corresponding
-"[host_scheduler].json" file. their values. Path to JSON file takes precedence.
-"""
-    arg_parser.add_argument('-hs', '--host-scheduler-settings',
-                            default=None,
-                            help=host_scheduler_help)
-
-    custom_scheduler_help = """Path to a JSON file with a dictionary of tags
-and *nondefault* values to go into the batch script. (The default settings
-dictionary, if loaded based on the host-scheduler specified with the "-hs" tag
-will be updated.
-"""
-    arg_parser.add_argument('-cs', '--custom-scheduler-settings',
-                            default=None,
-                            help=custom_scheduler_help)
-
-    batch_script_help = """Name of a predefined template file or path to a file
-with a template of the batch script to use to submit jobs. Name of the
-predefined template must be one of those in the "scheduler_settings" directory.
-Path to a template file takes precedence.
-"""
-    arg_parser.add_argument('-bs', '--batch-script-template',
-                            default=None,
-                            help=batch_script_help)
-
-    run_location_help = """Path/location where the calculations need to be run.
-Directories along the path specified will be created if not already present.
-"""
-    arg_parser.add_argument('-rl', '--run-location',
-                            default=None,
-                            help=run_location_help)
-
-    calculation_workflow_help = """Tag specifying the calculation workflow to
-perform. Currently only "relaxation" and "static" implemented. Default settings
-for each calculation in the workflow are predefined.
-"""
-    arg_parser.add_argument('-w', '--workflow',
-                            default='static',
-                            choices=['relaxation', 'static'],
-                            help=calculation_workflow_help)
-
-    custom_calculation_settings_help = """Path to a JSON file with a dictionary
-of *nondefault* INCAR and POTCAR settings for each calculation type. The default
-calculation settings dictionary loaded according to the workflow will be 
-updated. E.g., {"relaxation": {"ediff": 1E-8}, "static": {"sigma": 0.05}}
-"""
-    arg_parser.add_argument('-ccs', '--custom-calculation-settings',
-                            default=None,
-                            help=custom_calculation_settings_help)
-
-    args = arg_parser.parse_args()
-    subprocess.run(['kelpie_breed'])
-
-
-
+def main(sys_args):
+    prog = 'kelpie'
+    description = """Kelpie command line utility to manage VASP runs."""
+    arg_parser = KelpieArgumentParser(prog=prog, description=description)
+    args = arg_parser.parse_args(sys_args)
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv)
