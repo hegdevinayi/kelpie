@@ -3,7 +3,18 @@
 
 import sys
 from kelpie.arg_parser import KelpieArgumentParser
-import subprocess
+from kelpie.breeder import KelpieBreeder
+
+
+def breed(args):
+    breeder = KelpieBreeder(input_structure_file=args.input_structure_file,
+                            run_location=args.run_location,
+                            host_scheduler_settings=args.host_scheduler_settings,
+                            custom_scheduler_settings=args.custom_scheduler_settings,
+                            batch_script_template=args.batch_script_template,
+                            calculation_workflow=args.calculation_workflow,
+                            custom_calculation_settings=args.custom_calculation_settings)
+    breeder.breed()
 
 
 def main(sys_args):
@@ -11,6 +22,10 @@ def main(sys_args):
     description = """Kelpie command line utility to manage VASP runs."""
     arg_parser = KelpieArgumentParser(prog=prog, description=description)
     args = arg_parser.parse_args(sys_args)
+
+    # breeder
+    if args.mode in ['breed', 'all']:
+        breed(args)
 
 
 if __name__ == '__main__':

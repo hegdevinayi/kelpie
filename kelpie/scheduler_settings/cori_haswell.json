@@ -1,7 +1,7 @@
 {
   "submit_cmd": "sbatch",
-  "mpi_call": "srun -n {n_mpi} -c {lcores_per_mpi} --cpu_bind=cores {exe} 1>stdout 2>stderr",
-  "job-name": "kelpie",
+  "mpi_call": "srun -n {n_mpi} -c {lcores_per_mpi} --cpu_bind=cores {exe}",
+  "job-name": "kelpie_graze",
   "qos": "regular",
   "account": "m1673",
   "constraint": "haswell",
