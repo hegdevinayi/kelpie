@@ -3,10 +3,14 @@
 
 import sys
 from kelpie.arg_parser import KelpieArgumentParser
-from kelpie.breeder import KelpieBreeder
+from kelpie.breeder import KelpieBreeder, KelpieBreederError
 
 
 def breed(args):
+    if not args.input_structure_file:
+        error_message = 'Input structure for breeding not specified'
+        raise KelpieBreederError(error_message)
+
     breeder = KelpieBreeder(input_structure_file=args.input_structure_file,
                             run_location=args.run_location,
                             host_scheduler_settings=args.host_scheduler_settings,
@@ -29,4 +33,4 @@ def main(sys_args):
 
 
 if __name__ == '__main__':
-    main(sys.argv)
+    main(sys.argv[1:])

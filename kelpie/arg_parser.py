@@ -25,7 +25,7 @@ class KelpieArgumentParser(argparse.ArgumentParser):
                                    help=input_structure_help)
 
         ######################################################################
-        # General arguments
+        # General arguments (optional)
         ######################################################################
         mode_help = """Mode to run kelpie in:
 breed: Generate the necessary directory structure, job file, and submit job.
@@ -55,7 +55,7 @@ Directories along the path specified will be created if not already present.
                                   help=help_help)
 
         ######################################################################
-        # Batch scheduler related arguments
+        # Batch scheduler related arguments (optional)
         ######################################################################
         host_scheduler_help = """Name of a predefined host or path to a JSON file
 with the scheduler settings. If a name is specified, must be one of the hosts
@@ -88,7 +88,7 @@ Path to a template file takes precedence.
                                     help=batch_script_help)
 
         ######################################################################
-        # DFT calculation/settings related arguments
+        # DFT calculation/settings related arguments (optional)
         ######################################################################
         calculation_workflow_help = """Tag specifying the calculation workflow to
 perform. Currently only "relaxation" and "static" implemented. Default settings

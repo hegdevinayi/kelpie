@@ -24,8 +24,7 @@ class KelpieBreeder(object):
                  **kwargs):
         """Constructor.
 
-        :param input_structure_file: String with the location of the VASP5 POSCAR file.
-                                     (Default: './POSCAR')
+        :param input_structure_file: String with the location of the VASP5 POSCAR with the initial structure.
         :param run_location: String with the location where VASP calculations should be performed.
                              (Default: location of the specified `input_structure_file`)
         :param host_scheduler_settings: String with the name of a predefined host or path to a JSON file with the
@@ -92,9 +91,6 @@ class KelpieBreeder(object):
 
     @input_structure_file.setter
     def input_structure_file(self, input_structure_file):
-        if not input_structure_file:
-            error_message = '`input_structure_file` must be provided'
-            raise KelpieBreederError(error_message)
         if not os.path.isfile(input_structure_file):
             error_message = 'Specified `input_structure_file` {} not found'.format(input_structure_file)
             raise KelpieBreederError(error_message)
@@ -187,9 +183,8 @@ class KelpieBreeder(object):
         calculation_params = ' '.join(calculation_params)
 
         # arguments for kelpie grazer
-        settings.update({'input_structure_file': self.input_structure_file,
-                         'run_location': self.run_location})
-        settings.update({'calculation_params': calculation_params})
+        settings.update({'run_location': self.run_location,
+                         'calculation_params': calculation_params})
 
         # format the template with all the arguments
         with open(self.batch_script_template, 'r') as fr:
@@ -211,6 +206,21 @@ class KelpieBreeder(object):
         with change_working_dir(self.run_location):
             subprocess.run([submit_cmd, self.scheduler_script_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
+    def _get_mpi_call(self):
+        settings = {**self.host_scheduler_settings}
+        settings.update(self.custom_scheduler_settings)
+        mpi_call = settings.get('mpi_call')
+        if not mpi_call:
+            error_message = 'MPI call not specified for the host (in scheduler settings)'
+            raise KelpieBreederError(error_message)
+        settings.update({'n_mpi': int(settings.get('nodes'))*int(settings.get('n_mpi_per_node'))})
+        mpi_call = mpi_call.format(**settings)
+        return mpi_call
+
+    @property
+    def mpi_call(self):
+        return self._get_mpi_call()
+
     def breed(self):
         """Create the directory for running calculations if not already present, copy the specified input structure
         + write the batch script into the run location, submit the batch job.
@@ -219,9 +229,14 @@ class KelpieBreeder(object):
         if not os.path.isdir(self.run_location):
             os.makedirs(self.run_location)
 
-        # copy the specified input structure file into self.run_location/init_structure
-        init_structure_file = os.path.join(self.run_location, 'init_structure')
+        # copy the specified input structure file into "[self.run_location]/init_structure"
+        init_structure_file = os.path.join(self.run_location, 'init_structure.vasp')
         shutil.copy(self.input_structure_file, init_structure_file)
+
+        # write the mpi call into "[self.run_location]/mpi_call.txt". Will be read while grazing
+        mpi_call_file = os.path.join(self.run_location, 'mpi_call.txt')
+        with open(mpi_call_file, 'w') as fw:
+            fw.write(self.mpi_call)
 
         # write the batch script
         batch_script_file = os.path.join(self.run_location, self.scheduler_script_name)
