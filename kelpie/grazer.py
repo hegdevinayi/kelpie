@@ -1,11 +1,6 @@
 import os
-import shutil
-import subprocess
 import json
 from kelpie import io
-from kelpie.vasp_settings.incar import DEFAULT_VASP_INCAR_SETTINGS
-from kelpie.vasp_input_generator import VaspInputGenerator
-from kelpie.vasp_output_parser import VasprunXMLParser
 
 
 class KelpieGrazerError(Exception):
@@ -18,19 +13,28 @@ class KelpieGrazer(object):
 
     def __init__(self,
                  run_location=None,
+                 init_structure_file=None,
                  calculation_workflow=None,
                  custom_calculation_settings=None,
+                 mpi_call_file=None,
                  **kwargs):
         """Constructor.
 
         :param run_location: String with the directory where calculations will be performed.
+                             (Default: Current working directory)
+        :param init_structure_file: String with the location of the VASP5 POSCAR with the initial structure.
+                                    (Default: "[self.run_location]/init_structure.vasp")
         :param calculation_workflow: String with type of DFT calculation workflow.
-                                     Currently, only "relaxation", "static", "relaxation+static" workflows implemented.
+                                     Currently, only "relaxation", "static" workflows implemented.
                                      (Default: "relaxation")
-        :param custom_calculation_settings: Dictionary of *nondefault* INCAR, POTCAR settings for each
-                                            calculation type. (The default settings dictionary will be updated.)
-                                            E.g. {"relaxation": {"ediff": 1E-8, "nsw": 80}, "static": {"sigma": 0.1}}
+        :param custom_calculation_settings: Path to a JSON file with a dictionary of *nondefault* INCAR and POTCAR
+                                            settings for each calculation type. The default calculation settings
+                                            dictionary loaded according to the workflow will be updated.
+                                            E.g., {"relaxation": {"ediff": 1E-8}, "static": {"sigma": 0.05}}
                                             (Default: {})
+        :param mpi_call_file: Path to the text file with the mpi call command.
+                              E.g. file contents: "srun -np 64 -c 4 -cpu_bind=cores vasp_std"
+                              (Default: "[self.run_location]/mpi_call.txt"
         :param kwargs: Dictionary of other miscellaneous parameters, if any.
         """
 
@@ -38,25 +42,28 @@ class KelpieGrazer(object):
         self._run_location = None
         self.run_location = run_location
 
+        #: File with the initial structure, and the initial structure
+        self._init_structure_file = None
+        self.init_structure_file = init_structure_file
+        self.init_structure = io.read_poscar(self.init_structure_file)
+
         #: Type of DFT calculation workflow: relaxation/static/hse/...
         self._calculation_workflow = None
         self.calculation_workflow = calculation_workflow
 
         #: Nondefault INCAR settings and POTCAR choices for different calculation types
         #: default INCAR, POTCAR settings defined by `kelpie.vasp_settings.incar.DEFAULT_VASP_INCAR_SETTINGS` for the
-        # calculation workflow specified.
+        # calculation types in the workflow specified.
         #: VASP recommended POTCARs used by default are in `kelpie.vasp_settings.potcar.VASP_RECO_POTCARS`.
         self._custom_calculation_settings = None
         self.custom_calculation_settings = custom_calculation_settings
 
+        #: Path to the text file with the mpi call command
+        self._mpi_call_file = None
+        self.mpi_call_file = mpi_call_file
+
         #: Unsupported keyword arguments
         self.kwargs = kwargs
-
-        #: Initial structure
-        self.init_structure = io.read_poscar(self.init_structure_file)
-
-        #: MPI call command
-        self.mpi_call = self.read_mpi_call()
 
     @property
     def run_location(self):
@@ -64,7 +71,24 @@ class KelpieGrazer(object):
 
     @run_location.setter
     def run_location(self, run_location):
-        self._run_location = run_location
+        if not run_location:
+            self._run_location = os.path.abspath(os.getcwd())
+        else:
+            self._run_location = os.path.abspath(run_location)
+
+    @property
+    def init_structure_file(self):
+        return self._init_structure_file
+
+    @init_structure_file.setter
+    def init_structure_file(self, init_structure_file):
+        if not init_structure_file:
+            init_structure_file = os.path.join(self.run_location, 'init_structure.vasp')
+        if not os.path.exists(init_structure_file):
+            error_message = 'Initial structure file {} not found'.format(init_structure_file)
+            raise KelpieGrazerError(error_message)
+        else:
+            self._init_structure_file = os.path.abspath(init_structure_file)
 
     @property
     def calculation_workflow(self):
@@ -74,10 +98,10 @@ class KelpieGrazer(object):
     def calculation_workflow(self, calculation_workflow):
         if not calculation_workflow:
             self._calculation_workflow = 'relaxation'
-            return
-        if calculation_workflow.lower() not in ['relaxation', 'static', 'relaxation+static']:
+        elif calculation_workflow.lower() not in ['relaxation', 'static']:
             raise NotImplementedError('Only relaxation and static workflows currently implemented.')
-        self._calculation_workflow = calculation_workflow.lower()
+        else:
+            self._calculation_workflow = calculation_workflow.lower()
 
     @property
     def custom_calculation_settings(self):
@@ -87,22 +111,32 @@ class KelpieGrazer(object):
     def custom_calculation_settings(self, custom_calculation_settings):
         if not custom_calculation_settings:
             self._custom_calculation_settings = {}
+        elif not os.path.isfile(custom_calculation_settings):
+            error_message = 'Specified custom settings file {} not found'.format(custom_calculation_settings)
+            raise KelpieGrazerError(error_message)
         else:
-            self._custom_calculation_settings = custom_calculation_settings
-
-    @property
-    def init_structure_file(self):
-        return os.path.join(self.run_location, 'init_structure.vasp')
+            with open(custom_calculation_settings, 'r') as fr:
+                self._custom_calculation_settings = json.load(fr)
 
     @property
     def mpi_call_file(self):
-        return os.path.join(self.run_location, 'mpi_call.txt')
+        return self._mpi_call_file
 
-    def read_mpi_call(self):
-        if not os.path.isfile(self.mpi_call_file):
-            error_message = 'MPI call file "mpi_call.txt" not found in the run location'
+    @mpi_call_file.setter
+    def mpi_call_file(self, mpi_call_file):
+        if not mpi_call_file:
+            mpi_call_file = os.path.join(self.run_location, 'mpi_call.txt')
+        if not os.path.exists(mpi_call_file):
+            error_message = 'MPI call file {} not found'.format(mpi_call_file)
             raise KelpieGrazerError(error_message)
+        else:
+            self._mpi_call_file = os.path.abspath(mpi_call_file)
+
+    @property
+    def mpi_call(self):
         with open(self.mpi_call_file, 'r') as fr:
             return fr.read()
 
+    def graze(self):
+        pass
 
