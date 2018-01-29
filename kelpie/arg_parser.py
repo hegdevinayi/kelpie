@@ -100,9 +100,9 @@ for each calculation in the workflow are predefined.
                                       choices=['relaxation', 'static'],
                                       help=calculation_workflow_help)
 
-        custom_calculation_settings_help = """Path to a JSON file with a dictionary
-of *nondefault* INCAR and POTCAR settings for each calculation type. The default
-calculation settings dictionary loaded according to the workflow will be
+        custom_calculation_settings_help = """Absolute path to a JSON file with a
+dictionary of *nondefault* INCAR and POTCAR settings for each calculation type. The
+default calculation settings dictionary loaded according to the workflow will be
 updated. E.g., {"relaxation": {"ediff": 1E-8}, "static": {"sigma": 0.05}}
 
 """

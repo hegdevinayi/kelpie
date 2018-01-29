@@ -222,8 +222,8 @@ class KelpieBreeder(object):
         return self._get_mpi_call()
 
     def breed(self):
-        """Create the directory for running calculations if not already present, copy the specified input structure
-        + write the batch script into the run location, submit the batch job.
+        """Create the directory for running calculations if not already present, copy the specified input structure,
+        write the batch script and the mpi_call command into the run location, submit the batch job.
         """
         # create the directory structure if not already present
         if not os.path.isdir(self.run_location):
