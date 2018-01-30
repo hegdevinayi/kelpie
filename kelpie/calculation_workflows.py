@@ -11,7 +11,10 @@ class WorkflowError(Exception):
     pass
 
 
-def check_convergence(calc_type, vasprunxml, calc_sett):
+def check_convergence(calc_type='relaxation',
+                      vasprunxml='vasprun.xml',
+                      calc_sett=None):
+    pass
 
 
 
@@ -31,11 +34,12 @@ def do_relaxation(structure,
                             write_location=calc_dir,
                             **kwargs)
     ig.write_vasp_input_files()
-    with change_working_dir(calc_dir):
-        vasp_process = run_vasp(mpi_call)
+    vasp_process = run_vasp(mpi_call)
     if vasp_process.returncode != 0:
         error_message = 'Something went wrong with the MPI VASP run'
         raise WorkflowError(error_message)
+    is_converged = check_convergence(calc_sett=calc_sett)
+
 
 
 
@@ -48,11 +52,12 @@ def relaxation_workflow(init_structure,
     os.makedirs(calc_dir, exist_ok=True)
     calc_sett = DEFAULT_VASP_INCAR_SETTINGS['relaxation']
     calc_sett.update(custom_calculation_settings.get('relaxation'), {})
-    do_relaxation(structure=init_structure,
-                  calc_dir=calc_dir,
-                  calc_sett=calc_sett,
-                  mpi_call=mpi_call,
-                  **kwargs)
+    with change_working_dir(calc_dir):
+        do_relaxation(structure=init_structure,
+                      calc_dir=calc_dir,
+                      calc_sett=calc_sett,
+                      mpi_call=mpi_call,
+                      **kwargs)
 
 
 
