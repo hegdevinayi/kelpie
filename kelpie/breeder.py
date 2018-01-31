@@ -2,7 +2,7 @@ import os
 import shutil
 import subprocess
 import json
-from kelpie.files_and_folders import change_working_dir
+from kelpie import files_and_folders
 from kelpie.scheduler_settings import DEFAULT_SCHEDULER_SETTINGS
 from kelpie.scheduler_templates import SCHEDULER_TEMPLATES
 
@@ -21,6 +21,7 @@ class KelpieBreeder(object):
                  host_scheduler_settings=None,
                  custom_scheduler_settings=None,
                  batch_script_template=None,
+                 submit_batch_job=None,
                  **kwargs):
         """Constructor.
 
@@ -56,6 +57,8 @@ class KelpieBreeder(object):
                                       predefined template in the "scheduler_settings" directory.
                                       Note: Path to a file takes precedence.
                                       (Default: "cori.q")
+        :param submit_batch_job: Boolean specifying whether the batch job should be submitted to the scheduler.
+                                 (Default: True)
         :param kwargs: Dictionary of other miscellaneous parameters, if any.
         """
 
@@ -82,6 +85,10 @@ class KelpieBreeder(object):
         self._batch_script_template = None
         self.batch_script_template = batch_script_template
 
+        #: Should the batch job be submitted to the scheduler?
+        self._submit_batch_job = None
+        self.submit_batch_job = submit_batch_job
+
         #: Unsupported keyword arguments
         self.kwargs = kwargs
 
@@ -91,6 +98,9 @@ class KelpieBreeder(object):
 
     @input_structure_file.setter
     def input_structure_file(self, input_structure_file):
+        if not input_structure_file:
+            error_message = 'Input structure file not specified'
+            raise KelpieBreederError(error_message)
         if not os.path.isfile(input_structure_file):
             error_message = 'Specified `input_structure_file` {} not found'.format(input_structure_file)
             raise KelpieBreederError(error_message)
@@ -156,6 +166,17 @@ class KelpieBreeder(object):
             self._batch_script_template = template
 
     @property
+    def submit_batch_job(self):
+        return self._submit_batch_job
+
+    @submit_batch_job.setter
+    def submit_batch_job(self, submit_batch_job):
+        if not submit_batch_job:
+            self._submit_batch_job = True
+        else:
+            self._submit_batch_job = submit_batch_job
+
+    @property
     def scheduler_script_name(self):
         return '{}.q'.format(os.path.splitext(os.path.basename(self.batch_script_template))[0])
 
@@ -196,14 +217,14 @@ class KelpieBreeder(object):
     def batch_script(self):
         return self._get_batch_script()
 
-    def submit_batch_job(self):
+    def submit_job_to_scheduler(self):
         settings = {**self.host_scheduler_settings}
         settings.update(self.custom_scheduler_settings)
         submit_cmd = settings.get('submit_cmd')
         if not submit_cmd:
             error_message = 'Submit command for the batch scheduler not specified'
             raise KelpieBreederError(error_message)
-        with change_working_dir(self.run_location):
+        with files_and_folders.change_working_dir(self.run_location):
             subprocess.run([submit_cmd, self.scheduler_script_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     def _get_mpi_call(self):
@@ -243,6 +264,7 @@ class KelpieBreeder(object):
         with open(batch_script_file, 'w') as fw:
             fw.write(self.batch_script)
 
-        self.submit_batch_job()
+        if self.submit_batch_job:
+            self.submit_job_to_scheduler()
 
 
