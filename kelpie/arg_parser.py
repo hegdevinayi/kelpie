@@ -8,42 +8,47 @@ class KelpieArgumentParser(argparse.ArgumentParser):
             kwargs['formatter_class'] = argparse.RawTextHelpFormatter
         super(KelpieArgumentParser, self).__init__(*args, **kwargs, add_help=False)
 
-        required_args = self.add_argument_group(title='Required arguments')
-        general_args = self.add_argument_group(title='(optional) General arguments')
-        scheduler_args = self.add_argument_group(title='(optional) Batch scheduler-related arguments')
-        calculation_args = self.add_argument_group(title='(optional) DFT calculation-related arguments')
-
-        ######################################################################
-        # Required arguments
-        ######################################################################
-        input_structure_help = """Location of the file with the structure to calculate.
-
-"""
-        required_args.add_argument('-i', '--input-structure-file',
-                                   default=None,
-                                   required=True,
-                                   help=input_structure_help)
+        general_args = self.add_argument_group(title='General arguments')
+        scheduler_args = self.add_argument_group(title='Batch scheduler-related arguments')
+        calculation_args = self.add_argument_group(title='DFT calculation-related arguments')
 
         ######################################################################
         # General arguments (optional)
         ######################################################################
+        input_structure_help = """Location of the file with the structure to calculate.
+REQUIRED if mode is "breed" (see below).
+
+"""
+        general_args.add_argument('-i', '--input-structure-file',
+                                  default=None,
+                                  help=input_structure_help)
+
         mode_help = """Mode to run kelpie in:
 breed: Generate the necessary directory structure, job file, and submit job.
 graze: Perform the specified calculation workflow using the specified DFT code.
 herd:  Gather data for all the calculations performed during grazing.
-all:   Breed, graze and herd.
 
 """
         general_args.add_argument('-m', '--mode',
-                                  default='all',
-                                  choices=['breed', 'graze', 'herd', 'all'],
+                                  default='breed',
+                                  choices=['breed', 'graze', 'herd'],
                                   help=mode_help)
+
+        submit_help = """Should the batch job be submitted to the scheduler?
+Only relevant for "breed" mode, ignored otherwise. Defaults to "true".
+
+"""
+        general_args.add_argument('-s', '--submit-batch-job',
+                                  default='true',
+                                  choices=['true', 'false'],
+                                  help=submit_help)
 
         run_location_help = """Path/location where the calculations need to be run.
 Directories along the path specified will be created if not already present.
+Defaults to the current working directory.
 
 """
-        general_args.add_argument('-r', '--run-location',
+        general_args.add_argument('-l', '--run-location',
                                   default=None,
                                   help=run_location_help)
 
@@ -61,6 +66,7 @@ Directories along the path specified will be created if not already present.
 with the scheduler settings. If a name is specified, must be one of the hosts
 defined in `kelpie.scheduler_settings` (i.e., with a corresponding
 "[host_scheduler].json" file. their values. Path to JSON file takes precedence.
+Defaults to "cori_knl".
 
 """
         scheduler_args.add_argument('-hs', '--host-scheduler-settings',
@@ -81,6 +87,7 @@ will be updated.
 with a template of the batch script to use to submit jobs. Name of the
 predefined template must be one of those in the "scheduler_settings" directory.
 Path to a template file takes precedence.
+Defaults to "cori".
 
 """
         scheduler_args.add_argument('-bs', '--batch-script-template',
@@ -93,6 +100,7 @@ Path to a template file takes precedence.
         calculation_workflow_help = """Tag specifying the calculation workflow to
 perform. Currently only "relaxation" and "static" implemented. Default settings
 for each calculation in the workflow are predefined.
+Defaults to "relaxation".
 
 """
         calculation_args.add_argument('-w', '--calculation-workflow',
