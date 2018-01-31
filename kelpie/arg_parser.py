@@ -69,7 +69,7 @@ defined in `kelpie.scheduler_settings` (i.e., with a corresponding
 Defaults to "cori_knl".
 
 """
-        scheduler_args.add_argument('-hs', '--host-scheduler-settings',
+        scheduler_args.add_argument('-hss', '--host-scheduler-settings',
                                     default=None,
                                     help=host_scheduler_help)
 
@@ -79,7 +79,7 @@ dictionary, if loaded based on the host-scheduler specified with the "-hs" tag
 will be updated.
 
 """
-        scheduler_args.add_argument('-cs', '--custom-scheduler-settings',
+        scheduler_args.add_argument('-css', '--custom-scheduler-settings',
                                     default=None,
                                     help=custom_scheduler_help)
 
@@ -90,7 +90,7 @@ Path to a template file takes precedence.
 Defaults to "cori".
 
 """
-        scheduler_args.add_argument('-bs', '--batch-script-template',
+        scheduler_args.add_argument('-bst', '--batch-script-template',
                                     default=None,
                                     help=batch_script_help)
 
