@@ -173,6 +173,9 @@ class KelpieBreeder(object):
     def submit_batch_job(self, submit_batch_job):
         if not submit_batch_job:
             self._submit_batch_job = True
+            return
+        if isinstance(submit_batch_job, str):
+            self._submit_batch_job = submit_batch_job.lower()[0] == 't'
         else:
             self._submit_batch_job = submit_batch_job
 
