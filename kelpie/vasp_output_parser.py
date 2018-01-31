@@ -184,7 +184,7 @@ class VasprunXMLParser(object):
         ionic_steps = self.vasprun_soup.modeling.find_all('calculation', recursive=False)
         lattice_vectors_dict = {}
         for n_ionic_step, ionic_step in enumerate(ionic_steps):
-            varrays = ionic_step.input_structure.crystal.find_all('varray', recursive=False)
+            varrays = ionic_step.structure.crystal.find_all('varray', recursive=False)
             lattice_vectors = []
             for varray in varrays:
                 if varray['name'] != 'basis':
@@ -203,7 +203,7 @@ class VasprunXMLParser(object):
         ionic_steps = self.vasprun_soup.modeling.find_all('calculation', recursive=False)
         volume_dict = {}
         for n_ionic_step, ionic_step in enumerate(ionic_steps):
-            volume = float(ionic_step.input_structure.crystal.i.string.strip())
+            volume = float(ionic_step.structure.crystal.i.string.strip())
             volume_dict[n_ionic_step] = volume
         return volume_dict
 
@@ -212,7 +212,11 @@ class VasprunXMLParser(object):
         :return: Fermi energy
         :rtype: float
         """
-        return float(self.vasprun_soup.find('dos').i.string.strip())
+        try:
+            fermi_energy = float(self.vasprun_soup.find('dos').i.string.strip())
+        except (AttributeError, TypeError):
+            fermi_energy = None
+        return fermi_energy
 
     def read_band_occupations(self):
         """Read occupation of every band at every k-point for each spin channel.
