@@ -31,7 +31,6 @@ setup(
     ],
     include_package_data=True,
     scripts=[
-        'bin/kelpie_breed',
-        'bin/kelpie_graze'
+        'bin/kelpie',
     ]
 )
