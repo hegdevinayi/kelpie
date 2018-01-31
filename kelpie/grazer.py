@@ -23,7 +23,7 @@ class KelpieGrazer(object):
         :param run_location: String with the directory where calculations will be performed.
                              (Default: Current working directory)
         :param init_structure_file: String with the location of the VASP5 POSCAR with the initial structure.
-                                    (Default: "[self.run_location]/init_structure.vasp")
+                                    (Default: "[self.run_location]/initial_structure.vasp")
         :param calculation_workflow: String with type of DFT calculation workflow.
                                      Currently, only "relaxation", "static" workflows implemented.
                                      (Default: "relaxation")
@@ -83,7 +83,7 @@ class KelpieGrazer(object):
     @init_structure_file.setter
     def init_structure_file(self, init_structure_file):
         if not init_structure_file:
-            init_structure_file = os.path.join(self.run_location, 'init_structure.vasp')
+            init_structure_file = os.path.join(self.run_location, 'initial_structure.vasp')
         if not os.path.exists(init_structure_file):
             error_message = 'Initial structure file {} not found'.format(init_structure_file)
             raise KelpieGrazerError(error_message)
