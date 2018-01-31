@@ -98,8 +98,8 @@ class GenericWorkflow(object):
         return vasp_process
 
     def do_relaxation(self, structure=None, settings=None, mpi_call=None, **kwargs):
-        # propagate variable "nattempts" to keep track of the number of VASP runs
-        # if this is the first do_relaxation() call, initialize "nattempts"
+        # propagate variable "n_attempts" to keep track of the number of VASP runs
+        # if this is the first do_relaxation() call, initialize "n_attempts"
         if not hasattr(kwargs, 'n_attempts'):
             kwargs['n_attempts'] = 0
 
@@ -114,7 +114,7 @@ class GenericWorkflow(object):
         if vasp_process.returncode != 0:
             error_message = 'Something went wrong with the MPI VASP run'
             raise KelpieWorkflowError(error_message)
-        # increase "nattempts": VASP has already been run once
+        # increase "n_attempts": VASP has already been run once
         kwargs['n_attempts'] += 1
         # parse the calculation output and check if relevent convergence criteria are met
         vcd = VaspCalculationData(vasprun_xml_file='vasprun.xml')
@@ -122,7 +122,7 @@ class GenericWorkflow(object):
                                            force_thresh=settings.get('ediffg'))
 
         # recursively call do_relaxation() until either convergence or maximum attempts have been reached
-        if not converged and kwargs['nattempts'] <= 5:
+        if not converged and kwargs['n_attempts'] <= 5:
             try:
                 output_structure = io.read_poscar('CONTCAR')
             except io.KelpieIOError:
@@ -138,8 +138,8 @@ class GenericWorkflow(object):
             return vcd, converged
 
     def do_static(self, structure=None, settings=None, mpi_call=None, **kwargs):
-        # propagate variable "nattempts" to keep track of the number of VASP runs
-        # if this is the first do_relaxation() call, initialize "nattempts"
+        # propagate variable "n_attempts" to keep track of the number of VASP runs
+        # if this is the first do_relaxation() call, initialize "n_attempts"
         if not hasattr(kwargs, 'n_attempts'):
             kwargs['n_attempts'] = 0
 
@@ -154,14 +154,14 @@ class GenericWorkflow(object):
         if vasp_process.returncode != 0:
             error_message = 'Something went wrong with the MPI VASP run'
             raise KelpieWorkflowError(error_message)
-        # increase "nattempts": VASP has already been run once
+        # increase "n_attempts": VASP has already been run once
         kwargs['n_attempts'] += 1
         # parse the calculation output and check if relevent convergence criteria are met
         vcd = VaspCalculationData(vasprun_xml_file='vasprun.xml')
         converged = vcd.is_scf_converged(threshold=settings.get('ediff'))
 
         # recursively call do_relaxation() until either convergence or maximum attempts have been reached
-        if not converged and kwargs['nattempts'] <= 2:
+        if not converged and kwargs['n_attempts'] <= 2:
             files_and_folders.backup_files()
             return self.do_static(structure=structure,
                                   settings=settings,
@@ -190,11 +190,10 @@ class RelaxationWorkflow(GenericWorkflow):
         relaxation_dir = os.path.join(self.run_location, 'relaxation')
         os.makedirs(relaxation_dir, exist_ok=True)
         relaxation_settings = DEFAULT_VASP_INCAR_SETTINGS['relaxation']
-        relaxation_settings.update(self.custom_calculation_settings.get('relaxation'), {})
+        relaxation_settings.update(self.custom_calculation_settings.get('relaxation', {}))
         with files_and_folders.change_working_dir(relaxation_dir):
             vcd, converged = self.do_relaxation(structure=self.initial_structure,
-                                                calc_dir=relaxation_dir,
-                                                calc_sett=relaxation_settings,
+                                                settings=relaxation_settings,
                                                 mpi_call=self.mpi_call,
                                                 **self.kwargs)
         vcd.write_calculation_data(filename='relaxation_data.json')
@@ -208,14 +207,13 @@ class RelaxationWorkflow(GenericWorkflow):
         static_dir = os.path.join(self.run_location, 'static')
         os.makedirs(static_dir, exist_ok=True)
         static_settings = DEFAULT_VASP_INCAR_SETTINGS['static']
-        static_settings.update(self.custom_calculation_settings.get('static'), {})
+        static_settings.update(self.custom_calculation_settings.get('static', {}))
         files_and_folders.copy_files(src_folder='relaxation',
                                      dest_folder='static',
                                      list_of_filenames=['CHGCAR'])
         with files_and_folders.change_working_dir(static_dir):
             vcd, converged = self.do_static(structure=initial_structure,
-                                            calc_dir=static_dir,
-                                            calc_sett=static_settings,
+                                            settings=static_settings,
                                             mpi_call=self.mpi_call,
                                             **self.kwargs)
         vcd.write_calculation_data(filename='static_data.json')

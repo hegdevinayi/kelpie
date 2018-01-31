@@ -16,7 +16,7 @@ def change_working_dir(new_dir):
 
 def time_stamped_folder(base_name='archive'):
     now = datetime.datetime.now()
-    time_stamp = '{:4d}{:0>2d}{:0>2d}{:0>2d}'.format(now.year, now.month, now.day, now.minute)
+    time_stamp = '{:4d}{:0>2d}{:0>2d}{:0>2d}{:0>2d}'.format(now.year, now.month, now.day, now.hour, now.minute)
     return '_'.join([base_name, time_stamp])
 
 
@@ -28,7 +28,7 @@ def backup_files(list_of_files=None, folder_name='archive', gzip=True):
     for src_file in list_of_files:
         if gzip:
             dest_file = os.path.join(ts_folder, src_file+'.gz')
-            with open(src_file, 'r') as fsrc:
+            with open(src_file, 'rb') as fsrc:
                 with open(dest_file, 'wb') as fdest:
                     shutil.copyfileobj(fsrc, fdest)
         else:
