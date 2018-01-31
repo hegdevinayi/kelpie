@@ -12,4 +12,4 @@ export OMP_NUM_THREADS=1
 {modules}
 
 source activate kelpie
-kelpie -m graze -r {run_location} {calculation_params}
+kelpie -m graze -l {run_location} {calculation_params}
