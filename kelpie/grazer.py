@@ -1,6 +1,7 @@
 import os
 import json
 from kelpie import io
+from kelpie import calculation_workflows
 
 
 class KelpieGrazerError(Exception):
@@ -13,7 +14,7 @@ class KelpieGrazer(object):
 
     def __init__(self,
                  run_location=None,
-                 init_structure_file=None,
+                 initial_structure_file=None,
                  calculation_workflow=None,
                  custom_calculation_settings=None,
                  mpi_call_file=None,
@@ -22,8 +23,8 @@ class KelpieGrazer(object):
 
         :param run_location: String with the directory where calculations will be performed.
                              (Default: Current working directory)
-        :param init_structure_file: String with the location of the VASP5 POSCAR with the initial structure.
-                                    (Default: "[self.run_location]/initial_structure.vasp")
+        :param initial_structure_file: String with the location of the VASP5 POSCAR with the initial structure.
+                                       (Default: "[self.run_location]/initial_structure.vasp")
         :param calculation_workflow: String with type of DFT calculation workflow.
                                      Currently, only "relaxation", "static" workflows implemented.
                                      (Default: "relaxation")
@@ -43,14 +44,13 @@ class KelpieGrazer(object):
         self.run_location = run_location
 
         #: File with the initial structure, and the initial structure
-        self._init_structure_file = None
-        self.init_structure_file = init_structure_file
-        self.init_structure = io.read_poscar(self.init_structure_file)
+        self._initial_structure_file = None
+        self.initial_structure_file = initial_structure_file
+        self.initial_structure = io.read_poscar(self.initial_structure_file)
 
         #: Type of DFT calculation workflow: relaxation/static/hse/...
         self._calculation_workflow = None
         self.calculation_workflow = calculation_workflow
-
         #: Nondefault INCAR settings and POTCAR choices for different calculation types
         #: default INCAR, POTCAR settings defined by `kelpie.vasp_settings.incar.DEFAULT_VASP_INCAR_SETTINGS` for the
         # calculation types in the workflow specified.
@@ -77,18 +77,18 @@ class KelpieGrazer(object):
             self._run_location = os.path.abspath(run_location)
 
     @property
-    def init_structure_file(self):
-        return self._init_structure_file
+    def initial_structure_file(self):
+        return self._initial_structure_file
 
-    @init_structure_file.setter
-    def init_structure_file(self, init_structure_file):
-        if not init_structure_file:
-            init_structure_file = os.path.join(self.run_location, 'initial_structure.vasp')
-        if not os.path.exists(init_structure_file):
-            error_message = 'Initial structure file {} not found'.format(init_structure_file)
+    @initial_structure_file.setter
+    def initial_structure_file(self, initial_structure_file):
+        if not initial_structure_file:
+            initial_structure_file = os.path.join(self.run_location, 'initial_structure.vasp')
+        if not os.path.exists(initial_structure_file):
+            error_message = 'Initial structure file {} not found'.format(initial_structure_file)
             raise KelpieGrazerError(error_message)
         else:
-            self._init_structure_file = os.path.abspath(init_structure_file)
+            self._initial_structure_file = os.path.abspath(initial_structure_file)
 
     @property
     def calculation_workflow(self):
@@ -138,5 +138,13 @@ class KelpieGrazer(object):
             return fr.read()
 
     def graze(self):
-        pass
+        if not os.path.isdir(self.run_location):
+            os.makedirs(self.run_location)
 
+        workflow = getattr(calculation_workflows, '{}Workflow'.format(self.calculation_workflow.title()))(
+            initial_structure=self.initial_structure,
+            run_location=self.run_location,
+            custom_calculation_settings=self.custom_calculation_settings,
+            mpi_call=self.mpi_call,
+            **self.kwargs)
+        workflow.perform_workflow()
