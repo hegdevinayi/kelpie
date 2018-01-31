@@ -25,7 +25,7 @@ class VaspInputGenerator(object):
         :param calculation_settings: Dictionary of VASP INCAR tags, values, and POTCAR choices.
                                      Defaults to pre-defined full relaxation calculation.
         :param write_location: String with the location where the VASP input files should be written.
-                               Defaults to folder `structure.structural_formula` in the current working directory
+                               Defaults to current working directory
         :param kwargs: Dictionary of other miscellaneous parameters, if any.
         """
 
@@ -90,7 +90,7 @@ class VaspInputGenerator(object):
     @write_location.setter
     def write_location(self, write_location):
         if not write_location:
-            self._write_location = self.structure.structural_formula
+            self._write_location = os.path.abspath(os.getcwd())
         else:
             self._write_location = write_location
 
