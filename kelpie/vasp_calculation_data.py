@@ -51,6 +51,10 @@ class VaspCalculationData(object):
     def vxparser(self):
         return self._vxparser
 
+    @staticmethod
+    def timestamp_to_str(time):
+        return '{:4d}{:0>2d}{:0>2d}{:0>2d}{:0>2d}'.format(time.year, time.month, time.day, time.hour, time.minute)
+
     @property
     def run_timestamp(self):
         return self._run_timestamp
@@ -176,7 +180,7 @@ class VaspCalculationData(object):
     @property
     def calculation_data_as_dict(self):
         calculation_data = {
-            'run_timestamp': self.run_timestamp,
+            'run_timestamp': self.timestamp_to_str(self.run_timestamp),
             'composition_info': self.composition_info,
             'list_of_atoms': self.list_of_atoms,
             'n_ionic_steps': self.n_ionic_steps,
