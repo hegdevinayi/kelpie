@@ -137,6 +137,39 @@ class GenericWorkflow(object):
         else:
             return vcd, converged
 
+    def do_static(self, structure=None, settings=None, mpi_call=None, **kwargs):
+        # propagate variable "nattempts" to keep track of the number of VASP runs
+        # if this is the first do_relaxation() call, initialize "nattempts"
+        if not hasattr(kwargs, 'n_attempts'):
+            kwargs['n_attempts'] = 0
+
+        # write input files with the given structure and settings
+        ig = VaspInputGenerator(structure=structure,
+                                calculation_settings=settings,
+                                **kwargs)
+        ig.write_vasp_input_files()
+        # use the MPI call specified to run VASP
+        vasp_process = self.run_vasp(mpi_call)
+        # did the VASP run OK?
+        if vasp_process.returncode != 0:
+            error_message = 'Something went wrong with the MPI VASP run'
+            raise KelpieWorkflowError(error_message)
+        # increase "nattempts": VASP has already been run once
+        kwargs['n_attempts'] += 1
+        # parse the calculation output and check if relevent convergence criteria are met
+        vcd = VaspCalculationData(vasprun_xml_file='vasprun.xml')
+        converged = vcd.is_scf_converged(threshold=settings.get('ediff'))
+
+        # recursively call do_relaxation() until either convergence or maximum attempts have been reached
+        if not converged and kwargs['nattempts'] <= 2:
+            files_and_folders.backup_files()
+            return self.do_static(structure=structure,
+                                  settings=settings,
+                                  mpi_call=mpi_call,
+                                  **kwargs)
+        else:
+            return vcd, converged
+
 
 class RelaxationWorkflow(GenericWorkflow):
     """Class with workflow for a relaxation run followed by a final static run."""
