@@ -2,7 +2,7 @@ import os
 import shutil
 import subprocess
 import json
-from kelpie.change_dir import change_working_dir
+from kelpie.files_and_folders import change_working_dir
 from kelpie.scheduler_settings import DEFAULT_SCHEDULER_SETTINGS
 from kelpie.scheduler_templates import SCHEDULER_TEMPLATES
 
@@ -229,8 +229,8 @@ class KelpieBreeder(object):
         if not os.path.isdir(self.run_location):
             os.makedirs(self.run_location)
 
-        # copy the specified input structure file into "[self.run_location]/init_structure"
-        init_structure_file = os.path.join(self.run_location, 'init_structure.vasp')
+        # copy the specified input structure file into "[self.run_location]/initial_structure"
+        init_structure_file = os.path.join(self.run_location, 'initial_structure.vasp')
         shutil.copy(self.input_structure_file, init_structure_file)
 
         # write the mpi call into "[self.run_location]/mpi_call.txt". Will be read while grazing
