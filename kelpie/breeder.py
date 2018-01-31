@@ -144,6 +144,10 @@ class KelpieBreeder(object):
     def custom_scheduler_settings(self, custom_scheduler_settings):
         if not custom_scheduler_settings:
             self._custom_scheduler_settings = {}
+            return
+        if os.path.isfile(custom_scheduler_settings):
+            with open(custom_scheduler_settings, 'r') as fr:
+                self._custom_scheduler_settings = json.load(fr)
         else:
             self._custom_scheduler_settings = custom_scheduler_settings
 
