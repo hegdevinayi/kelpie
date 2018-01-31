@@ -104,7 +104,7 @@ Defaults to "relaxation".
 
 """
         calculation_args.add_argument('-w', '--calculation-workflow',
-                                      default='static',
+                                      default='relaxation',
                                       choices=['relaxation', 'static'],
                                       help=calculation_workflow_help)
 
