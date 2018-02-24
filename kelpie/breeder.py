@@ -56,7 +56,7 @@ class KelpieBreeder(object):
         :param batch_script_template: String with the path to a batch script template file OR the name of a
                                       predefined template in the "scheduler_settings" directory.
                                       Note: Path to a file takes precedence.
-                                      (Default: "cori.q")
+                                      (Default: "cori")
         :param submit_batch_job: Boolean specifying whether the batch job should be submitted to the scheduler.
                                  (Default: True)
         :param kwargs: Dictionary of other miscellaneous parameters, if any.
@@ -241,7 +241,11 @@ class KelpieBreeder(object):
         if not mpi_call:
             error_message = 'MPI call not specified for the host (in scheduler settings)'
             raise KelpieBreederError(error_message)
-        settings.update({'n_mpi': int(settings.get('nodes'))*int(settings.get('n_mpi_per_node'))})
+        # special settings for the "shared" queue on Cori
+        if not settings.get('nodes'):
+            settings.update({'n_mpi': int(settings.get('cores'))})
+        else:
+            settings.update({'n_mpi': int(settings.get('nodes'))*int(settings.get('n_mpi_per_node'))})
         mpi_call = mpi_call.format(**settings)
         return mpi_call
 

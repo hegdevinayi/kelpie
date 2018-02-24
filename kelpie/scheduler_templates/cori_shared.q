@@ -1,6 +1,6 @@
 #!/bin/bash -l
 #SBATCH -J {job-name}
-#SBATCH -N {nodes}
+#SBATCH -n {cores}
 #SBATCH -t {walltime}
 #SBATCH -q {qos}
 #SBATCH -A {account}
