@@ -24,6 +24,7 @@
   "lelf": false,
   "kpar": 4,
   "ncore": 32,
+  "magnetism": "ferro",
   "hubbards": "wang",
   "scale_ediff_per_atom": true,
   "potcar_settings": {"version": "54", "xc": "PBE", "element_potcars": {}}
