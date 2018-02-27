@@ -12,3 +12,9 @@ atomic_weights_file = os.path.join(os.path.dirname(__file__), 'standard_atomic_w
 with open(atomic_weights_file, 'r') as fr:
     STD_ATOMIC_WEIGHTS = json.load(fr)
 
+
+# Number of electrons in s, p, d, f shells
+# Source: OQMD (for which the data was taken from Mathematica, IIRC)
+valence_electrons_file = os.path.join(os.path.dirname(__file__), 'valence_electrons.json')
+with open(valence_electrons_file, 'r') as fr:
+    VALENCE_ELECTRONS = json.load(fr)
