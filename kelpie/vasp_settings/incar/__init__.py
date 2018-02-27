@@ -16,3 +16,8 @@ for calculation_type in calculation_types:
     settings_file = os.path.join(current_dir, '{}.json'.format(calculation_type))
     with open(settings_file, 'r') as fr:
         DEFAULT_VASP_INCAR_SETTINGS[calculation_type] = json.load(fr)
+
+# read in Hubbard U values (currently only from Wang et al., PRB 73, 195107 (2006))
+hubbard_values_file = os.path.join(current_dir, 'hubbards.json')
+with open(hubbard_values_file, 'r') as fr:
+    HUBBARD_U_VALUES = json.load(fr)
