@@ -58,11 +58,12 @@
   ],
   "hubbard_u": [
     "ldau",
-    "ldauprint",
+    "ldautype",
     "ldauu",
     "ldauj",
     "ldaul",
-    "lmaxmix"
+    "lmaxmix",
+    "ldauprint"
   ],
   "mixing": [
     "amix",
