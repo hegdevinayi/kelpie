@@ -17,7 +17,7 @@
   "ediffg": -1E-2,
   "potim": 0.187,
   "nsw": 60,
-  "ispin": 2,
+  "ispin": 1,
   "lcharg": true,
   "lwave": false,
   "lelf": false,
@@ -25,6 +25,7 @@
   "ncore": 32,
   "encut_scaling_factor": 1.5,
   "maximum_encut": 600,
+  "hubbards": "wang",
   "scale_ediff_per_atom": true,
   "potcar_settings": {"version": "54", "xc": "PBE", "element_potcars": {}}
 }
