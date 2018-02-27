@@ -1,0 +1,674 @@
+{
+  "Ru": {
+    "d_elec": 7.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 1.0
+  }, 
+  "Re": {
+    "d_elec": 5.0, 
+    "f_elec": 14.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Rf": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 0.0
+  }, 
+  "Rg": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 0.0
+  }, 
+  "Ra": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Rb": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 1.0
+  }, 
+  "Rn": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 0.0
+  }, 
+  "Rh": {
+    "d_elec": 8.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 1.0
+  }, 
+  "Be": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 4.0
+  }, 
+  "Ba": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Bh": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 0.0
+  }, 
+  "Bi": {
+    "d_elec": 10.0, 
+    "f_elec": 14.0, 
+    "p_elec": 3.0, 
+    "s_elec": 2.0
+  }, 
+  "Bk": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 0.0
+  }, 
+  "Br": {
+    "d_elec": 10.0, 
+    "f_elec": 0.0, 
+    "p_elec": 5.0, 
+    "s_elec": 2.0
+  }, 
+  "H": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 1.0
+  }, 
+  "P": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 3.0, 
+    "s_elec": 2.0
+  }, 
+  "Os": {
+    "d_elec": 6.0, 
+    "f_elec": 14.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Es": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 0.0
+  }, 
+  "Ge": {
+    "d_elec": 10.0, 
+    "f_elec": 0.0, 
+    "p_elec": 2.0, 
+    "s_elec": 2.0
+  }, 
+  "Gd": {
+    "d_elec": 1.0, 
+    "f_elec": 7.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Ga": {
+    "d_elec": 10.0, 
+    "f_elec": 0.0, 
+    "p_elec": 1.0, 
+    "s_elec": 2.0
+  }, 
+  "Pr": {
+    "d_elec": 0.0, 
+    "f_elec": 3.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Pt": {
+    "d_elec": 9.0, 
+    "f_elec": 14.0, 
+    "p_elec": 0.0, 
+    "s_elec": 1.0
+  }, 
+  "Pu": {
+    "d_elec": 0.0, 
+    "f_elec": 6.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "C": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 2.0, 
+    "s_elec": 4.0
+  }, 
+  "Pb": {
+    "d_elec": 10.0, 
+    "f_elec": 14.0, 
+    "p_elec": 2.0, 
+    "s_elec": 2.0
+  }, 
+  "Pa": {
+    "d_elec": 1.0, 
+    "f_elec": 2.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Pd": {
+    "d_elec": 10.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 0.0
+  }, 
+  "Xe": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 0.0
+  }, 
+  "Po": {
+    "d_elec": 10.0, 
+    "f_elec": 14.0, 
+    "p_elec": 4.0, 
+    "s_elec": 2.0
+  }, 
+  "Pm": {
+    "d_elec": 0.0, 
+    "f_elec": 5.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Hs": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 0.0
+  }, 
+  "Ho": {
+    "d_elec": 0.0, 
+    "f_elec": 11.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Hf": {
+    "d_elec": 2.0, 
+    "f_elec": 14.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Hg": {
+    "d_elec": 10.0, 
+    "f_elec": 14.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "He": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Md": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 0.0
+  }, 
+  "Mg": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "K": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 1.0
+  }, 
+  "Mn": {
+    "d_elec": 5.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "O": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 4.0, 
+    "s_elec": 2.0
+  }, 
+  "Mt": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 0.0
+  }, 
+  "S": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 4.0, 
+    "s_elec": 2.0
+  }, 
+  "W": {
+    "d_elec": 4.0, 
+    "f_elec": 14.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Zn": {
+    "d_elec": 10.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Eu": {
+    "d_elec": 0.0, 
+    "f_elec": 7.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Zr": {
+    "d_elec": 2.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Er": {
+    "d_elec": 0.0, 
+    "f_elec": 12.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Ni": {
+    "d_elec": 8.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "No": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 0.0
+  }, 
+  "Na": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 1.0
+  }, 
+  "Nb": {
+    "d_elec": 4.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 1.0
+  }, 
+  "Nd": {
+    "d_elec": 0.0, 
+    "f_elec": 4.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Ne": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 0.0
+  }, 
+  "Np": {
+    "d_elec": 1.0, 
+    "f_elec": 4.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Fr": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 0.0
+  }, 
+  "Fe": {
+    "d_elec": 6.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Fm": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 0.0
+  }, 
+  "B": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 1.0, 
+    "s_elec": 4.0
+  }, 
+  "F": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 5.0, 
+    "s_elec": 4.0
+  }, 
+  "Sr": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "N": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 3.0, 
+    "s_elec": 4.0
+  }, 
+  "Kr": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 0.0
+  }, 
+  "Si": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 2.0, 
+    "s_elec": 2.0
+  }, 
+  "Sn": {
+    "d_elec": 10.0, 
+    "f_elec": 0.0, 
+    "p_elec": 2.0, 
+    "s_elec": 2.0
+  }, 
+  "Sm": {
+    "d_elec": 0.0, 
+    "f_elec": 6.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "V": {
+    "d_elec": 3.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Sc": {
+    "d_elec": 1.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Sb": {
+    "d_elec": 10.0, 
+    "f_elec": 0.0, 
+    "p_elec": 3.0, 
+    "s_elec": 2.0
+  }, 
+  "Sg": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 0.0
+  }, 
+  "Se": {
+    "d_elec": 10.0, 
+    "f_elec": 0.0, 
+    "p_elec": 4.0, 
+    "s_elec": 2.0
+  }, 
+  "Co": {
+    "d_elec": 7.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Cn": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 0.0
+  }, 
+  "Cm": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 0.0
+  }, 
+  "Cl": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 5.0, 
+    "s_elec": 2.0
+  }, 
+  "Ca": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Cf": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 0.0
+  }, 
+  "Ce": {
+    "d_elec": 1.0, 
+    "f_elec": 1.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Cd": {
+    "d_elec": 10.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Tm": {
+    "d_elec": 0.0, 
+    "f_elec": 13.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Cs": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 1.0
+  }, 
+  "Cr": {
+    "d_elec": 5.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 1.0
+  }, 
+  "Cu": {
+    "d_elec": 10.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 1.0
+  }, 
+  "La": {
+    "d_elec": 1.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Li": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 3.0
+  }, 
+  "Tl": {
+    "d_elec": 10.0, 
+    "f_elec": 14.0, 
+    "p_elec": 1.0, 
+    "s_elec": 2.0
+  }, 
+  "Lu": {
+    "d_elec": 1.0, 
+    "f_elec": 14.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Lr": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 0.0
+  }, 
+  "Th": {
+    "d_elec": 2.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Ti": {
+    "d_elec": 2.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Te": {
+    "d_elec": 10.0, 
+    "f_elec": 0.0, 
+    "p_elec": 4.0, 
+    "s_elec": 2.0
+  }, 
+  "Tb": {
+    "d_elec": 0.0, 
+    "f_elec": 9.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Tc": {
+    "d_elec": 5.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Ta": {
+    "d_elec": 3.0, 
+    "f_elec": 14.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Yb": {
+    "d_elec": 0.0, 
+    "f_elec": 14.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Db": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 0.0
+  }, 
+  "Dy": {
+    "d_elec": 0.0, 
+    "f_elec": 10.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Ds": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 0.0
+  }, 
+  "I": {
+    "d_elec": 10.0, 
+    "f_elec": 0.0, 
+    "p_elec": 5.0, 
+    "s_elec": 2.0
+  }, 
+  "U": {
+    "d_elec": 1.0, 
+    "f_elec": 3.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Y": {
+    "d_elec": 1.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Ac": {
+    "d_elec": 1.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Ag": {
+    "d_elec": 10.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 1.0
+  }, 
+  "Ir": {
+    "d_elec": 7.0, 
+    "f_elec": 14.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Am": {
+    "d_elec": 0.0, 
+    "f_elec": 7.0, 
+    "p_elec": 0.0, 
+    "s_elec": 2.0
+  }, 
+  "Al": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 1.0, 
+    "s_elec": 2.0
+  }, 
+  "As": {
+    "d_elec": 10.0, 
+    "f_elec": 0.0, 
+    "p_elec": 3.0, 
+    "s_elec": 2.0
+  }, 
+  "Ar": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 6.0, 
+    "s_elec": 2.0
+  }, 
+  "Au": {
+    "d_elec": 10.0, 
+    "f_elec": 14.0, 
+    "p_elec": 0.0, 
+    "s_elec": 1.0
+  }, 
+  "At": {
+    "d_elec": 0.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 0.0
+  }, 
+  "In": {
+    "d_elec": 10.0, 
+    "f_elec": 0.0, 
+    "p_elec": 1.0, 
+    "s_elec": 2.0
+  }, 
+  "Mo": {
+    "d_elec": 5.0, 
+    "f_elec": 0.0, 
+    "p_elec": 0.0, 
+    "s_elec": 1.0
+  }
+}
