@@ -254,7 +254,24 @@ class Structure(object):
         return ''.join(['{}{}'.format(e, self.composition_dict[e]) for e in self.list_of_species])
 
     def _get_magmom_tag(self):
-        return
+        if 'A' in self._missing_structure_components():
+            error_message = 'The structure has no atoms to generate the MAGMOM tag from'
+            raise StructureError(error_message)
+        magmoms = []
+        for species in self.list_of_species:
+            for atom in self.atoms:
+                if atom.species == species:
+                    magmoms.append(atom.magmom)
+        magmom_str = []
+        m_count = 1
+        for i in range(len(magmoms))[1:]:
+            if abs(magmoms[i] - magmoms[i-1]) < 1E-3:
+                m_count += 1
+            else:
+                magmom_str.append('{}*{:.3f}'.format(m_count, magmoms[i-1]))
+                m_count = 1
+        magmom_str.append('{}*{:.3f}'.format(m_count, magmoms[-1]))
+        return ' '.join(magmom_str)
 
     @property
     def MAGMOM(self):
