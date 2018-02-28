@@ -13,7 +13,8 @@ class Atom(object):
 
     def __init__(self,
                  coordinates=None,
-                 species=None):
+                 species=None,
+                 magmom=None):
         """Constructor.
 
         :param coordinates: Iterable of the x, y, z coordinates of the atom (fractional or cartesian)
@@ -24,6 +25,9 @@ class Atom(object):
 
         self._species = None
         self.species = species
+
+        self._magmom = None
+        self.magmom = magmom
 
     @property
     def coordinates(self):
@@ -67,6 +71,22 @@ class Atom(object):
             raise AtomError(error_message)
         else:
             self._species = species
+
+
+    @property
+    def magmom(self):
+        return self._magmom
+
+    @magmom.setter
+    def magmom(self, magmom):
+        if magmom is None:
+            self._magmom = 0.
+            return
+        try:
+            self._magmom = float(magmom)
+        except ValueError, TypeError:
+            error_message = 'Magnetic moment on an atom should be a decimal or integer'
+            raise AtomError(error_message)
 
     @property
     def x(self):
@@ -232,6 +252,13 @@ class Structure(object):
     @property
     def structural_formula(self):
         return ''.join(['{}{}'.format(e, self.composition_dict[e]) for e in self.list_of_species])
+
+    def _get_magmom_tag(self):
+        return
+
+    @property
+    def MAGMOM(self):
+        return self._get_magmom_tag()
 
     def _get_vasp_poscar(self):
         """Construct the VASP POSCAR.
