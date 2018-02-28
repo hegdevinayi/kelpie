@@ -3,7 +3,7 @@ import math
 import kelpie
 from kelpie import io
 from kelpie.structure import Structure
-from kelpie.vasp_settings.incar import DEFAULT_VASP_INCAR_SETTINGS, VASP_INCAR_TAGS
+from kelpie.vasp_settings.incar import DEFAULT_VASP_INCAR_SETTINGS, VASP_INCAR_TAGS, HUBBARD_U_VALUES
 from kelpie.vasp_settings.potcar import VASP_RECO_POTCARS
 from kelpie.data import STD_ATOMIC_WEIGHTS, VALENCE_ELECTRONS
 
@@ -91,8 +91,9 @@ class VaspInputGenerator(object):
 
         # if the structure contains O and one of the TMs for which Hubbard U value to use is known,
         # set the appropriate VASP INCAR TAGS
-        if self._calculation_settings.get('hubbards', None) is not None:
-            self.set_hubbard_tags()
+        hubbard_values_scheme = self._calculation_settings.get('hubbards', None)
+        if hubbard_values_scheme is not None:
+            self.set_hubbards(scheme=hubbard_values_scheme)
 
     @property
     def write_location(self):
@@ -266,13 +267,48 @@ class VaspInputGenerator(object):
             self._calculation_settings.update({'ispin': 1})
 
     def set_magmom_tag(self):
-        if self.calculation_settings.get('ispin') == 1:
+        if self._calculation_settings.get('ispin') == 1:
             return
         else:
             self._calculation_settings.update({'magmom': self.structure.MAGMOM})
 
-    def set_hubbard_tags(self):
-        pass
+    def get_hubbards(self, scheme='wang'):
+        if scheme not in HUBBARD_U_VALUES:
+            error_message = 'Cannot find the specified scheme "{}" for Hubbard U values to use'.format(scheme)
+            raise VaspInputError(error_message)
+        ldaul = []
+        ldauu = []
+        ldauj = []
+        for species in self.structure.list_of_species:
+            element = sorted([e for e in STD_ATOMIC_WEIGHTS if species.startswith(e)])[-1]
+            if element in HUBBARD_U_VALUES[scheme]:
+                ldaul.append(2)
+                ldauu.append(HUBBARD_U_VALUES[scheme][element])
+            else:
+                ldaul.append(-1)
+                ldauu.append(0.)
+            ldauj.append(0.)
+        # if no species has a Hubbard U value to use, switch off LDAU
+        if all([v == -1 for v in ldaul]):
+            hubbards = {'ldau': False}
+            return hubbards
+        # otherwise, generate the VASP INCAR TAGS and return as a Dictionary
+        ldaul = ' '.join(['{}'.format(v) for v in ldaul])
+        ldauu = ' '.join(['{:.2f}'.format(v) for v in ldauu])
+        ldauj = ' '.join(['{:.2f}'.format(v) for v in ldauj])
+        hubbards = {
+            'ldau': True,
+            'ldautype': 2,
+            'ldaul': ldaul,
+            'ldauu': ldauu,
+            'ldauj': ldauj,
+            'ldaprint': 1,
+            'lmaxmix': 4
+        }
+        return hubbards
+
+    def set_hubbards(self, scheme='wang'):
+        self._calculation_settings.update(self.get_hubbards(scheme=scheme))
 
     @property
     def INCAR(self):
