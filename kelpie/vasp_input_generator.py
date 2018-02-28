@@ -5,6 +5,7 @@ from kelpie import io
 from kelpie.structure import Structure
 from kelpie.vasp_settings.incar import DEFAULT_VASP_INCAR_SETTINGS, VASP_INCAR_TAGS
 from kelpie.vasp_settings.potcar import VASP_RECO_POTCARS
+from kelpie.data import STD_ATOMIC_WEIGHTS, VALENCE_ELECTRONS
 
 
 class VaspInputError(Exception):
@@ -82,6 +83,16 @@ class VaspInputGenerator(object):
         # Scale EDIFF with the number of atoms in the unit cell
         if self._calculation_settings.get('scale_ediff_per_atom'):
             self.scale_ediff_per_atom()
+
+        # if the structure contains elements with unfilled d or f shells, set ISPIN = 2, and
+        # appropriate MAGMOM tag
+        if self._calculation_settings.get('magnetism', None) is not None:
+            self.set_magnetism()
+
+        # if the structure contains O and one of the TMs for which Hubbard U value to use is known,
+        # set the appropriate VASP INCAR TAGS
+        if self._calculation_settings.get('hubbards', None) is not None:
+            self.set_hubbard_tags()
 
     @property
     def write_location(self):
@@ -234,6 +245,34 @@ class VaspInputGenerator(object):
         """Scale EDIFF with number of atoms in the unit cell. EDIFF' = EDIFF*number of atoms in the cell."""
         ediff = self._calculation_settings.get('ediff', DEFAULT_VASP_INCAR_SETTINGS['relaxation']['ediff'])
         self._calculation_settings.update({'ediff': ediff*self.structure.natoms, 'scale_ediff_per_atom': False})
+
+    def set_magnetism(self):
+        if self._calculation_settings['magnetism'] != 'ferro':
+            error_message = 'Only ferromagnetic initial configuration implemented'
+            raise NotImplementedError(error_message)
+        for atom in self.structure.atoms:
+            element = sorted([e for e in STD_ATOMIC_WEIGHTS if atom.species.startswith(e)])[-1]
+            if 0 < VALENCE_ELECTRONS[element]['d_elec'] < 10:
+                atom.magmom = 5.0
+            if 0 < VALENCE_ELECTRONS[element]['f_elec'] < 14:
+                atom.magmom = 7.0
+        self.set_ispin()
+        self.set_magmom_tag()
+
+    def set_ispin(self):
+        if any([a.magmom for a in self.structure.atoms]):
+            self._calculation_settings.update({'ispin': 2})
+        else:
+            self._calculation_settings.update({'ispin': 1})
+
+    def set_magmom_tag(self):
+        if self.calculation_settings.get('ispin') == 1:
+            return
+        else:
+            self._calculation_settings.update({'magmom': self.structure.MAGMOM})
+
+    def set_hubbard_tags(self):
+        pass
 
     @property
     def INCAR(self):
