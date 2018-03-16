@@ -84,7 +84,7 @@ class Atom(object):
             return
         try:
             self._magmom = float(magmom)
-        except ValueError, TypeError:
+        except (ValueError, TypeError) as error:
             error_message = 'Magnetic moment on an atom should be a decimal or integer'
             raise AtomError(error_message)
 
