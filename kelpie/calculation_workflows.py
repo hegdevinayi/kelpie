@@ -123,6 +123,16 @@ class GenericWorkflow(object):
 
         # recursively call do_relaxation() until either convergence or maximum attempts have been reached
         if not converged and kwargs['n_attempts'] <= 5:
+            # if not converged wrt number of bands, restart with
+            # 1.2*N_bands_old or N_bands_old+4 whichever is higher
+            # make sure settings are carried over to the static calculation
+            if not vcd.is_number_of_bands_converged():
+                nbands = max([int(vcd.nbands*1.2), vcd.nbands+4])
+                settings.update({'nbands': nbands})
+                self._custom_calculation_settings.update({
+                    'relaxation': {'nbands': nbands},
+                    'static': {'nbands': nbands}
+                })
             try:
                 output_structure = io.read_poscar('CONTCAR')
             except io.KelpieIOError:
@@ -160,7 +170,7 @@ class GenericWorkflow(object):
         vcd = VaspCalculationData(vasprun_xml_file='vasprun.xml')
         converged = vcd.is_scf_converged(threshold=settings.get('ediff'))
 
-        # recursively call do_relaxation() until either convergence or maximum attempts have been reached
+        # recursively call do_static() until either convergence or maximum attempts have been reached
         if not converged and kwargs['n_attempts'] <= 2:
             files_and_folders.backup_files()
             return self.do_static(structure=structure,
