@@ -108,6 +108,12 @@ class VaspCalculationData(object):
         return self._band_occupations
 
     @property
+    def nbands(self):
+        for spin in self.band_occupations:
+            for kpoint in self.band_occupations[spin]:
+                return len(self.band_occupations[spin][kpoint]['band_energy'])
+
+    @property
     def scf_looptimes(self):
         return self._scf_looptimes
 
@@ -153,6 +159,20 @@ class VaspCalculationData(object):
                 break
         return converged
 
+    def is_number_of_bands_converged(self, threshold=1E-2):
+        highest_band_energy = -100.
+        highest_band_occ = 0
+        for spin in self.band_occupations:
+            for kpoint in self.band_occupations[spin]:
+                for be, occ in zip(self.band_occupations[spin][kpoint]['band_energy'],
+                                   self.band_occupations[spin][kpoint]['occupations']):
+                    if be > highest_band_energy:
+                        highest_band_energy = be
+                        highest_band_occ = occ
+                    else:
+                        continue
+        return highest_band_occ <= threshold
+
     def is_basis_converged(self, volume_only=False, threshold=1E-2):
         if volume_only:
             delta_vol = (self.cell_volumes[self.n_ionic_steps - 1] - self.cell_volumes[0])/self.cell_volumes[0]
@@ -171,10 +191,12 @@ class VaspCalculationData(object):
                            each_ionic_step=False,
                            force_thresh=1E-2,
                            volume_only=False,
-                           basis_thresh=1E-2):
+                           basis_thresh=1E-2,
+                           band_occ_thresh=1E-2):
         converged = (self.is_scf_converged(threshold=scf_thresh, each_ionic_step=each_ionic_step) and
                      self.are_forces_converged(threshold=force_thresh) and
-                     self.is_basis_converged(volume_only=volume_only, threshold=basis_thresh))
+                     self.is_basis_converged(volume_only=volume_only, threshold=basis_thresh) and
+                     self.is_number_of_bands_converged(threshold=band_occ_thresh))
         return converged
 
     @property
@@ -196,6 +218,7 @@ class VaspCalculationData(object):
             'total_runtime': self.total_runtime,
             'scf_converged': self.is_scf_converged(),
             'forces_converged': self.are_forces_converged(),
+            'bands_converged': self.is_number_of_bands_converged(),
             'basis_converged': self.is_basis_converged(),
             'fully_converged': self.is_fully_converged()
         }
