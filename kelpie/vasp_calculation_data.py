@@ -165,7 +165,7 @@ class VaspCalculationData(object):
         for spin in self.band_occupations:
             for kpoint in self.band_occupations[spin]:
                 for be, occ in zip(self.band_occupations[spin][kpoint]['band_energy'],
-                                   self.band_occupations[spin][kpoint]['occupations']):
+                                   self.band_occupations[spin][kpoint]['occupation']):
                     if be > highest_band_energy:
                         highest_band_energy = be
                         highest_band_occ = occ
