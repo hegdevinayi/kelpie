@@ -26,6 +26,8 @@ def backup_files(list_of_files=None, folder_name='archive', gzip=True):
     ts_folder = time_stamped_folder(base_name=folder_name)
     os.mkdir(ts_folder)
     for src_file in list_of_files:
+        if not os.path.isfile(src_file):
+            continue
         if gzip:
             dest_file = os.path.join(ts_folder, src_file+'.gz')
             with open(src_file, 'rb') as fsrc:
