@@ -19,7 +19,8 @@
     "nbands",
     "encut",
     "kspacing",
-    "kgamma"
+    "kgamma",
+    "gga"
   ],
   "electronic_relaxation": [
     "algo",
