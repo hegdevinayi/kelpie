@@ -196,13 +196,26 @@ class RelaxationWorkflow(GenericWorkflow):
                                                  mpi_call=mpi_call,
                                                  **kwargs)
 
-    def perform_workflow(self):
+    def perform_workflow(self, from_scratch=False):
         relaxation_dir = os.path.join(self.run_location, 'relaxation')
+        if from_scratch:
+            shutil.rmtree(relaxation_dir)
         os.makedirs(relaxation_dir, exist_ok=True)
         relaxation_settings = DEFAULT_VASP_INCAR_SETTINGS['relaxation']
         relaxation_settings.update(self.custom_calculation_settings.get('relaxation', {}))
+        initial_structure = self.initial_structure
         with files_and_folders.change_working_dir(relaxation_dir):
-            vcd, converged = self.do_relaxation(structure=self.initial_structure,
+            if not from_scratch:
+                previous_outcar = os.path.join(relaxation_dir, 'OUTCAR')
+                previous_contcar = os.path.join(relaxation_dir, 'CONTCAR')
+                previous_poscar = os.path.join(relaxation_dir, 'POSCAR')
+                if os.path.isfile(previous_outcar) and os.path.getsize(previous_outcar):
+                    files_and_folders.backup_files()
+                if os.path.isfile(previous_contcar) and os.path.getsize(previous_contcar):
+                    initial_structure = io.read_poscar(previous_contcar)
+                elif os.path.isfile(previous_poscar) and os.path.getsize(previous_poscar):
+                    initial_structure = io.read_poscar(previous_poscar)
+            vcd, converged = self.do_relaxation(structure=initial_structure,
                                                 settings=relaxation_settings,
                                                 mpi_call=self.mpi_call,
                                                 **self.kwargs)
