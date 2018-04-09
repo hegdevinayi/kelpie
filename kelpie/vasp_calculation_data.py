@@ -160,8 +160,8 @@ class VaspCalculationData(object):
         return converged
 
     def is_number_of_bands_converged(self, threshold=1E-2):
-        highest_band_energy = -100.
-        highest_band_occ = 0
+        highest_band_energy = float('-inf')
+        highest_band_occ = 1.
         for spin in self.band_occupations:
             for kpoint in self.band_occupations[spin]:
                 for be, occ in zip(self.band_occupations[spin][kpoint]['band_energy'],

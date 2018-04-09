@@ -225,9 +225,11 @@ class VasprunXMLParser(object):
         :rtype: dict(str, dict(int, dict(str, list(float))))
         """
         final_ionic_step = self.vasprun_soup.modeling.find_all('calculation', recursive=False)[-1]
-        eigenvalues = final_ionic_step.find('eigenvalues').set
+        eigenvalues = final_ionic_step.find('eigenvalues')
+        if not eigenvalues:
+            return
         occupations_dict = {}
-        for spin_set in eigenvalues.find_all('set', recursive=False):
+        for spin_set in eigenvalues.set.find_all('set', recursive=False):
             spin = spin_set['comment'].replace(' ', '_')
             occupations_dict[spin] = {}
             for kpoint_set in spin_set.find_all('set', recursive=False):

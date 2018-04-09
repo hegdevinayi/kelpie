@@ -198,8 +198,10 @@ class RelaxationWorkflow(GenericWorkflow):
 
     def perform_workflow(self, from_scratch=False):
         relaxation_dir = os.path.join(self.run_location, 'relaxation')
-        if from_scratch:
+        # if from_scratch, delete the "relaxation" folder, if it exists
+        if from_scratch and os.path.isdir(relaxation_dir):
             shutil.rmtree(relaxation_dir)
+        # create a "relaxation" folder, if one doesn't already exist
         os.makedirs(relaxation_dir, exist_ok=True)
         relaxation_settings = DEFAULT_VASP_INCAR_SETTINGS['relaxation']
         relaxation_settings.update(self.custom_calculation_settings.get('relaxation', {}))
