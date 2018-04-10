@@ -1,0 +1,14 @@
+{
+    "submit_cmd": "msub",
+    "mpi_call": "mpirun -np {n_mpi} {exe}",
+    "nodes": 1,
+    "walltime": "04:00:00",
+    "job-name": "kelpie_graze",
+    "account": "b1004",
+    "output": "job.oe",
+    "modules": [
+        "mpi/intel-mpi-5.1.3.258"
+        ],
+    "exe": "vasp_std",
+    "n_mpi_per_node": 28
+}
