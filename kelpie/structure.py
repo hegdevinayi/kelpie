@@ -181,6 +181,28 @@ class Structure(object):
                         raise StructureError(error_message)
             self._lattice_vectors = lv.tolist()
 
+    @staticmethod
+    def get_volume(lattice_vectors=None):
+        """
+        Return the volume of the lattice vectors specified as their absolute determinant.
+        Return None if lattice vectors are not specified.
+        """
+        if lattice_vectors is None:
+            return
+        return abs(numpy.linalg.det(lattice_vectors))
+
+    @property
+    def volume(self):
+        """Volume of the structure."""
+        return self.get_volume(lattice_vectors=self.lattice_vectors)
+
+    @property
+    def volume_pa(self):
+        """Volume of the structure per atom."""
+        if not self.atoms:
+            return
+        return self.volume/float(self.natoms)
+
     @property
     def coordinate_system(self):
         return self._coordinate_system
