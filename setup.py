@@ -10,7 +10,7 @@ with open(os.path.join(os.path.dirname(__file__), 'README.md'), 'r') as fr:
 setup(
     name='kelpie',
     version=__version__,
-    description='A Python-based project for cluster-side management of VASP runs',
+    description='A lean Python module for cluster-side management of VASP runs',
     long_description=long_description,
     url='https://gitlab.com/hegdevinayi/kelpie',
     author='Vinay Hegde',

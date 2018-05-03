@@ -1,3 +1,4 @@
-# kelpie
+kelpie
+======
 
-A python-based module for managing VASP (Vienna Abinitio Simulation Package) runs on supercomputers/clusters.
+A Python-based module for managing VASP (Vienna Abinitio Simulation Package) runs on supercomputers/clusters.
