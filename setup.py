@@ -26,7 +26,7 @@ setup(
     keywords='VASP DFT supercomputer high-throughput',
     packages=find_packages(exclude=['tests*', 'docs']),
     install_requires=[
-        'beautifulsoup4',
+        'lxml',
         'numpy'
     ],
     include_package_data=True,
