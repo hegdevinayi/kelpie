@@ -198,6 +198,24 @@ class VasprunXMLParser(object):
             lattice_vectors_dict[n_ionic_step] = np.array(lattice_vectors)
         return lattice_vectors_dict
 
+    def read_atomic_coordinates(self):
+        """Read positions of all the atoms at the end of each ionic step.
+
+        :return: {ionic_step_1: [[species_1, [x1, y1, z1]], [species_2, [x2, y2, z2]], ...], ionic_step_2: ...}
+        :rtype: dict(int, list(list(str, numpy.array)))
+        """
+        atomslist = self.read_list_of_atoms()
+        ionic_steps = self.xmlroot.findall('./calculation')
+        atomic_coordinates = {}
+        for n_ionic_step, ionic_step in enumerate(ionic_steps):
+            atomic_coordinates[n_ionic_step] = []
+            varray = ionic_step.find('./structure/varray')
+            if varray.attrib['name'] != 'positions':
+                continue
+            for atom, coordinates in zip(atomslist, varray.findall('v')):
+                atomic_coordinates[n_ionic_step].append({atom: [float(e) for e in coordinates.text.split()]})
+        return atomic_coordinates
+
     def read_cell_volumes(self):
         """Read the volume (in cubic Angstrom) of the unit cell at the end of each ionic step.
 
