@@ -29,6 +29,7 @@ class VaspCalculationData(object):
         self._forces = self.vxparser.read_forces()
         self._stress_tensors = self.vxparser.read_stress_tensors()
         self._lattice_vectors = self.vxparser.read_lattice_vectors()
+        self._atomic_coordinates = self.vxparser.read_atomic_coordinates()
         self._cell_volumes = self.vxparser.read_cell_volumes()
         self._fermi_energy = self.vxparser.read_fermi_energy()
         self._band_occupations = self.vxparser.read_band_occupations()
@@ -94,6 +95,10 @@ class VaspCalculationData(object):
     @property
     def lattice_vectors(self):
         return self._lattice_vectors
+
+    @property
+    def atomic_coordinates(self):
+        return self._atomic_coordinates
 
     @property
     def cell_volumes(self):
