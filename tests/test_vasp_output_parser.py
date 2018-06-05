@@ -54,6 +54,22 @@ class TestVasprunXMLParser(unittest.TestCase):
         self.assertTupleEqual(lattice_vectors[0].shape, (3, 3))
         self.assertAlmostEqual(lattice_vectors[1][1][1], 3.38391318)
 
+    def test_read_atomic_coordinates(self):
+        atomic_coordinates = self.vxparser.read_atomic_coordinates()
+        self.assertEqual(len(atomic_coordinates[0]), 3)
+        self.assertListEqual([list(atoms.keys()) for atoms in atomic_coordinates[0]], [['Ca'], ['F'], ['F']])
+        self.assertAlmostEqual(atomic_coordinates[1][1]['F'][2], 0.24999888)
+
+    def test_read_kpoint_mesh(self):
+        kpoint_mesh = self.vxparser.read_kpoint_mesh()
+        self.assertListEqual(kpoint_mesh, [11, 12, 11])
+
+    def test_read_irreducible_kpoints(self):
+        irreducible_kpoints = self.vxparser.read_irreducible_kpoints()
+        self.assertEqual(len(irreducible_kpoints), 402)
+        self.assertEqual(len(irreducible_kpoints[-1]), 3)
+        self.assertAlmostEqual(irreducible_kpoints[-1][1], -0.0833333)
+
     def test_read_cell_volumes(self):
         volume = self.vxparser.read_cell_volumes()
         self.assertAlmostEqual(volume[2], 41.78289124)
