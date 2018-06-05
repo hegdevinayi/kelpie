@@ -117,7 +117,7 @@ class GenericWorkflow(object):
         # increase "n_attempts": VASP has already been run once
         kwargs['n_attempts'] += 1
         # parse the calculation output and check if relevent convergence criteria are met
-        vcd = VaspCalculationData(vasprun_xml_file='vasprun.xml')
+        vcd = VaspCalculationData(vasprunxml_file='vasprun.xml')
         converged = vcd.is_fully_converged(scf_thresh=settings.get('ediff'),
                                            force_thresh=settings.get('ediffg'))
 
@@ -167,7 +167,7 @@ class GenericWorkflow(object):
         # increase "n_attempts": VASP has already been run once
         kwargs['n_attempts'] += 1
         # parse the calculation output and check if relevent convergence criteria are met
-        vcd = VaspCalculationData(vasprun_xml_file='vasprun.xml')
+        vcd = VaspCalculationData(vasprunxml_file='vasprun.xml')
         converged = vcd.is_scf_converged(threshold=settings.get('ediff'))
 
         # recursively call do_static() until either convergence or maximum attempts have been reached

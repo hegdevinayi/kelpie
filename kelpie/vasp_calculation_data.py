@@ -11,14 +11,14 @@ class VaspCalculationError(Exception):
 class VaspCalculationData(object):
     """Base class to store output data from a VASP calculation."""
 
-    def __init__(self, vasprun_xml_file='vasprun.xml'):
+    def __init__(self, vasprunxml_file='vasprun.xml'):
         """
-        :param vasprun_xml_file: Path to the vasprun.xml file to parse.
+        :param vasprunxml_file: Path to the vasprun.xml file to parse.
         """
-        self._vasprun_xml_file = None
-        self.vasprun_xml_file = vasprun_xml_file
+        self._vasprunxml_file = None
+        self.vasprunxml_file = vasprunxml_file
 
-        self._vxparser = VasprunXMLParser(self.vasprun_xml_file)
+        self._vxparser = VasprunXMLParser(self.vasprunxml_file)
         self._run_timestamp = self.vxparser.read_run_timestamp()
         self._composition_info = self.vxparser.read_composition_information()
         self._list_of_atoms = self.vxparser.read_list_of_atoms()
@@ -40,15 +40,15 @@ class VaspCalculationData(object):
         self._total_runtime = self._calculate_total_runtime(self.scf_looptimes)
 
     @property
-    def vasprun_xml_file(self):
-        return self._vasprun_xml_file
+    def vasprunxml_file(self):
+        return self._vasprunxml_file
 
-    @vasprun_xml_file.setter
-    def vasprun_xml_file(self, vasprun_xml_file):
-        if os.path.isfile(vasprun_xml_file):
-            self._vasprun_xml_file = vasprun_xml_file
+    @vasprunxml_file.setter
+    def vasprunxml_file(self, vasprunxml_file):
+        if os.path.isfile(vasprunxml_file):
+            self._vasprunxml_file = vasprunxml_file
         else:
-            error_msg = 'VASP output file {} not found'.format(vasprun_xml_file)
+            error_msg = 'VASP output file {} not found'.format(vasprunxml_file)
             raise VaspCalculationError(error_msg)
 
     @property

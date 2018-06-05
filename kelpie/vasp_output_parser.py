@@ -13,15 +13,15 @@ class VasprunXMLParserError(Exception):
 class VasprunXMLParser(object):
     """Base class to parse relevant output from a vasprun.xml file."""
 
-    def __init__(self, vasprun_xml_file='vasprun.xml'):
+    def __init__(self, vasprunxml_file='vasprun.xml'):
         """
-        :param vasprun_xml_file: name of the vasprun.xml file (default='vasprun.xml')
-        :type vasprun_xml_file: str
+        :param vasprunxml_file: name of the vasprun.xml file (default='vasprun.xml')
+        :type vasprunxml_file: str
         """
-        self.vasprun_xml_file = os.path.abspath(vasprun_xml_file)
-        self.xmlroot = self._get_vasprun_xml_root()
+        self.vasprunxml_file = os.path.abspath(vasprunxml_file)
+        self.xmlroot = self._get_vasprunxml_root()
 
-    def _get_vasprun_xml_root(self):
+    def _get_vasprunxml_root(self):
         """Read contents from a vasprun.xml or vasprun.xml.gz file, convert it into
         etree.ElementTree and get the root element with tag 'modeling'
 
@@ -30,7 +30,7 @@ class VasprunXMLParser(object):
         :rtype: etree._Element
         """
         parser = etree.XMLParser(remove_blank_text=True)
-        tree = etree.parse(self.vasprun_xml_file)
+        tree = etree.parse(self.vasprunxml_file)
         xmlroot = tree.getroot()
         if xmlroot.tag != 'modeling':
             error_message = 'Root element of vasprun.xml "modeling" not found'
