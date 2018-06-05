@@ -77,6 +77,11 @@ class TestVasprunXMLParser(unittest.TestCase):
     def test_read_fermi_energy(self):
         self.assertAlmostEqual(self.vxparser.read_fermi_energy(), -1.11803743)
 
+    def test_read_total_dos(self):
+        total_dos = self.vxparser.read_total_dos()
+        self.assertListEqual(list(total_dos.keys()), ['spin_1', 'spin_2'])
+        self.assertAlmostEqual(total_dos['spin_2'][12][1], -0.1063)
+
     def test_read_band_occupations(self):
         occupations = self.vxparser.read_band_occupations()
         self.assertIsInstance(occupations, dict)

@@ -266,13 +266,27 @@ class VasprunXMLParser(object):
             fermi_energy = None
         return fermi_energy
 
+    def read_total_dos(self):
+        """
+        :return: Total density of states {'spin_1': [[energy1, dos1, intdos_1], ...], 'spin_2': ...}
+        :rtype: dict(str, list(list(float)))
+        """
+        dos_block = self.xmlroot.find('./calculation/dos')
+        dos_data = {'spin_1': None, 'spin_2': None}
+        for spin in dos_block.findall('./total/array/set/set'):
+            spin_data = []
+            for gridpoint in spin.findall('r'):
+                spin_data.append([float(e) for e in gridpoint.text.strip().split()])
+            dos_data[spin.attrib['comment'].replace(' ', '_')] = spin_data
+        return dos_data
+
     def read_band_occupations(self):
         """Read occupation of every band at every k-point for each spin channel.
 
         :return: {'spin_1': {kpoint_1: {'band_energy': [band1, ...], 'occupation': [occ1, ...]}, 'kpoint_2': ...}}
         :rtype: dict(str, dict(int, dict(str, list(float))))
         """
-        final_ionic_step = self.xmlroot.findall('./calculation')[-1]
+        final_ionic_step = self.xmlroot.findall('calculation')[-1]
         eigenvalues = final_ionic_step.find('eigenvalues')
         if eigenvalues is None:
             return

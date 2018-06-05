@@ -34,6 +34,7 @@ class VaspCalculationData(object):
         self._kpoint_mesh = self.vxparser.read_kpoint_mesh()
         self._irreducible_kpoints = self.vxparser.read_number_of_irreducible_kpoints()
         self._fermi_energy = self.vxparser.read_fermi_energy()
+        self._total_dos = self.vxparser.read_total_dos()
         self._band_occupations = self.vxparser.read_band_occupations()
         self._scf_looptimes = self.vxparser.read_scf_looptimes()
         self._total_runtime = self._calculate_total_runtime(self.scf_looptimes)
@@ -123,6 +124,10 @@ class VaspCalculationData(object):
     @property
     def fermi_energy(self):
         return self._fermi_energy
+
+    @property
+    def total_dos(self):
+        return self._total_dos
 
     @property
     def band_occupations(self):
