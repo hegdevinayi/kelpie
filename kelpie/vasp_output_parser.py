@@ -205,7 +205,7 @@ class VasprunXMLParser(object):
         :rtype: dict(int, list(list(str, numpy.array)))
         """
         atomslist = self.read_list_of_atoms()
-        ionic_steps = self.xmlroot.findall('./calculation')
+        ionic_steps = self.xmlroot.findall('calculation')
         atomic_coordinates = {}
         for n_ionic_step, ionic_step in enumerate(ionic_steps):
             atomic_coordinates[n_ionic_step] = []
@@ -222,12 +222,38 @@ class VasprunXMLParser(object):
         :return: {ionic_step_1: float, ionic_step_2: float}
         :rtype: dict(int, float)
         """
-        ionic_steps = self.xmlroot.findall('./calculation')
+        ionic_steps = self.xmlroot.findall('calculation')
         volume_dict = {}
         for n_ionic_step, ionic_step in enumerate(ionic_steps):
             volume = float(ionic_step.find('./structure/crystal/i').text.strip())
             volume_dict[n_ionic_step] = volume
         return volume_dict
+
+    def read_kpoint_mesh(self):
+        """Read the k-point mesh (k_x, k_y, k_z) used in the calculation.
+
+        :return: [k_x, k_y, k_z]
+        :rtype: list(int)
+        """
+        kpoints_block = self.xmlroot.find('kpoints')
+        for v in kpoints_block.findall('./generation/v'):
+            if v.attrib['name'] == 'divisions':
+                kmesh = [int(k) for k in v.text.split()]
+                return kmesh
+
+    def read_irreducible_kpoints(self):
+        """Read all the irreducible k-points used in the calculation.
+
+        :return: [[kx_1, ky_1, kz_1], [kx_2, ky_2, kz_2], ...]
+        :rtype: list(list(float))
+        """
+        kpoints = []
+        kpoints_block = self.xmlroot.find('kpoints')
+        for kpointlist in kpoints_block.findall('varray'):
+            if kpointlist.attrib['name'] == 'kpointlist':
+                for v in kpointlist.findall('v'):
+                    kpoints.append([float(k) for k in v.text.split()])
+                return kpoints
 
     def read_fermi_energy(self):
         """
