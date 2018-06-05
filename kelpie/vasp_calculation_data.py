@@ -31,6 +31,8 @@ class VaspCalculationData(object):
         self._lattice_vectors = self.vxparser.read_lattice_vectors()
         self._atomic_coordinates = self.vxparser.read_atomic_coordinates()
         self._cell_volumes = self.vxparser.read_cell_volumes()
+        self._kpoint_mesh = self.vxparser.read_kpoint_mesh()
+        self._irreducible_kpoints = self.vxparser.read_number_of_irreducible_kpoints()
         self._fermi_energy = self.vxparser.read_fermi_energy()
         self._band_occupations = self.vxparser.read_band_occupations()
         self._scf_looptimes = self.vxparser.read_scf_looptimes()
@@ -103,6 +105,20 @@ class VaspCalculationData(object):
     @property
     def cell_volumes(self):
         return self._cell_volumes
+
+    @property
+    def kpoint_mesh(self):
+        return self._kpoint_mesh
+
+    @property
+    def irreducible_kpoints(self):
+        return self._irreducible_kpoints
+
+    @property
+    def n_irreducible_kpoints(self):
+        if self.irreducible_kpoints is None:
+            return
+        return len(self.irreducible_kpoints)
 
     @property
     def fermi_energy(self):
