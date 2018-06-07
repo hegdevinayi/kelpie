@@ -272,7 +272,7 @@ class VasprunXMLParser(object):
         :rtype: dict(str, list(list(float)))
         """
         dos_block = self.xmlroot.find('./calculation/dos')
-        dos_data = {'spin_1': None, 'spin_2': None}
+        dos_data = {}
         for spin in dos_block.findall('./total/array/set/set'):
             spin_data = []
             for gridpoint in spin.findall('r'):
