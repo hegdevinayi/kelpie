@@ -9,7 +9,7 @@ class TestVasprunXMLParser(unittest.TestCase):
 
     def setUp(self):
         from kelpie import vasp_output_parser as parser
-        self.vxparser = parser.VasprunXMLParser(os.path.join(sample_vasp_output_dir, 'vasprun.xml'))
+        self.vxparser = parser.VasprunXMLParser(os.path.join(sample_vasp_output_dir, 'relaxation_vasprun.xml.gz'))
 
     def test_read_composition_information(self):
         composition_info = self.vxparser.read_composition_information()
