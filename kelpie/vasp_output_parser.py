@@ -13,13 +13,28 @@ class VasprunXMLParserError(Exception):
 class VasprunXMLParser(object):
     """Base class to parse relevant output from a vasprun.xml file."""
 
-    def __init__(self, vasprunxml_file='vasprun.xml'):
+    def __init__(self, vasprunxml_file=None):
         """
         :param vasprunxml_file: name of the vasprun.xml file (default='vasprun.xml')
         :type vasprunxml_file: str
         """
-        self.vasprunxml_file = os.path.abspath(vasprunxml_file)
+        self._vasprunxml_file = None
+        self.vasprunxml_file = vasprunxml_file
+
         self.xmlroot = self._get_vasprunxml_root()
+
+    @property
+    def vasprunxml_file(self):
+        return self._vasprunxml_file
+
+    @vasprunxml_file.setter
+    def vasprunxml_file(self, vasprunxml_file):
+        if vasprunxml_file is None:
+            return
+        if not os.path.isfile(vasprunxml_file):
+            error_message = 'Cannot find specified vasprun.xml file: {}'.format(vasprunxml_file)
+            raise VasprunXMLParserError(error_message)
+        self._vasprunxml_file = os.path.abspath(vasprunxml_file)
 
     def _get_vasprunxml_root(self):
         """Read contents from a vasprun.xml or vasprun.xml.gz file, convert it into
@@ -29,6 +44,8 @@ class VasprunXMLParser(object):
         :return: root element of vasprun.xml
         :rtype: etree._Element
         """
+        if self.vasprunxml_file is None:
+            return
         parser = etree.XMLParser(remove_blank_text=True)
         tree = etree.parse(self.vasprunxml_file)
         xmlroot = tree.getroot()
@@ -255,30 +272,30 @@ class VasprunXMLParser(object):
                     kpoints.append([float(k) for k in v.text.split()])
                 return kpoints
 
-    def read_fermi_energy(self):
+    def read_total_density_of_states(self):
         """
-        :return: Fermi energy
-        :rtype: float
-        """
-        try:
-            fermi_energy = float(self.xmlroot.find('./calculation/dos/i').text.strip())
-        except (AttributeError, TypeError):
-            fermi_energy = None
-        return fermi_energy
-
-    def read_total_dos(self):
-        """
-        :return: Total density of states {'spin_1': [[energy1, dos1, intdos_1], ...], 'spin_2': ...}
+        :return: Total density of states data {'spin_1': [[energy1, dos1, intdos_1], ...], 'spin_2': ...}
         :rtype: dict(str, list(list(float)))
         """
         dos_block = self.xmlroot.find('./calculation/dos')
-        dos_data = {}
+        total_dos_data = {}
         for spin in dos_block.findall('./total/array/set/set'):
             spin_data = []
             for gridpoint in spin.findall('r'):
                 spin_data.append([float(e) for e in gridpoint.text.strip().split()])
-            dos_data[spin.attrib['comment'].replace(' ', '_')] = spin_data
-        return dos_data
+            total_dos_data[spin.attrib['comment'].replace(' ', '_')] = spin_data
+        return total_dos_data
+
+    def read_fermi_energy(self):
+        """
+        :return: the Fermi energy in eV
+        :rtype: float or None
+        """
+        try:
+            fermi_energy = float(self.xmlroot.find('./calculation/dos/i').text.strip())
+        except (AttributeError, TypeError) as error:
+            fermi_energy = None
+        return fermi_energy
 
     def read_band_occupations(self):
         """Read occupation of every band at every k-point for each spin channel.
