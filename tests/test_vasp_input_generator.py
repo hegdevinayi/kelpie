@@ -30,7 +30,7 @@ class TestVaspInputGenerator(unittest.TestCase):
         self.assertAlmostEqual(self.ig.calculation_settings['ediff'], 15E-08)
 
     def test_write_location_setter_default(self):
-        self.assertEqual(self.ig.write_location, 'Li6Mn2O7')
+        self.assertEqual(self.ig.write_location, os.path.abspath(os.path.dirname(__file__)))
 
     def test_tag_value_formatter(self):
         self.assertEqual(self.ig.vasp_tag_value_formatter([27, 'acc', 0.15, True]), '27 ACC 1.50E-01 .TRUE.')
