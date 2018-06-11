@@ -1,5 +1,6 @@
 import os
 import math
+import six
 import kelpie
 from kelpie import io
 from kelpie.structure import Structure
@@ -54,7 +55,7 @@ class VaspInputGenerator(object):
         if isinstance(structure, Structure):
             structure.check_structure_is_complete()
             self._structure = structure
-        elif isinstance(structure, str):
+        elif isinstance(structure, six.string_types):
             if os.path.isfile(structure):
                 structure = io.read_poscar(poscar_file=structure)
                 self._structure = structure
@@ -109,7 +110,7 @@ class VaspInputGenerator(object):
     def vasp_tag_value_formatter(self, value):
         if isinstance(value, list):
             return ' '.join(map(self.vasp_tag_value_formatter, value))
-        elif isinstance(value, str):
+        elif isinstance(value, six.string_types):
             return value.upper()
         elif isinstance(value, bool):
             return '.{}.'.format(str(value).upper())

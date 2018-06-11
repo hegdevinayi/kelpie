@@ -2,6 +2,7 @@ import os
 import shutil
 import subprocess
 import json
+import six
 from kelpie import files_and_folders
 from kelpie.scheduler_settings import DEFAULT_SCHEDULER_SETTINGS
 from kelpie.scheduler_templates import SCHEDULER_TEMPLATES
@@ -178,7 +179,7 @@ class KelpieBreeder(object):
         if not submit_batch_job:
             self._submit_batch_job = True
             return
-        if isinstance(submit_batch_job, str):
+        if isinstance(submit_batch_job, six.string_types):
             self._submit_batch_job = submit_batch_job.lower()[0] == 't'
         else:
             self._submit_batch_job = submit_batch_job

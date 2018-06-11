@@ -26,6 +26,7 @@ setup(
     keywords='VASP DFT supercomputer high-throughput',
     packages=find_packages(exclude=['tests*', 'docs']),
     install_requires=[
+        'six',
         'lxml',
         'numpy'
     ],
