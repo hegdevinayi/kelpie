@@ -78,7 +78,7 @@ class TestVasprunXMLParser(unittest.TestCase):
         self.assertAlmostEqual(self.vxparser.read_fermi_energy(), -1.11803743)
 
     def test_read_total_dos(self):
-        total_dos = self.vxparser.read_total_dos()
+        total_dos = self.vxparser.read_total_density_of_states()
         self.assertListEqual(list(total_dos.keys()), ['spin_1', 'spin_2'])
         self.assertAlmostEqual(total_dos['spin_2'][12][1], -0.1063)
 
