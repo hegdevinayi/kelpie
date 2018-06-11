@@ -4,8 +4,12 @@ import datetime
 
 
 class JSONableError(Exception):
-    """Base class to handle errors associated with serializing data to JSON"""
+    """Base class to handle errors associated with JSON-serializing data."""
     pass
+
+
+def datetime_to_str(time):
+    return '{:0>4d}{:0>2d}{:0>2d}{:0>2d}{:0>2d}'.format(time.year, time.month, time.day, time.hour, time.minute)
 
 
 def jsonable(data, ignore_failures=True):
@@ -14,7 +18,7 @@ def jsonable(data, ignore_failures=True):
     elif isinstance(data, (bool, int, float, six.string_types)):
         return data
     elif isinstance(data, datetime.datetime):
-        return '{:4d}{:0>2d}{:0>2d}{:0>2d}{:0>2d}'.format(data.year, data.month, data.day, data.hour, data.minute)
+        return datetime_to_str(data)
     elif isinstance(data, np.ndarray):
         return data.tolist()
     else:

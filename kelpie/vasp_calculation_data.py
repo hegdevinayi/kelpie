@@ -37,10 +37,6 @@ class VaspCalculationData(object):
     def vxparser(self):
         return self._vxparser
 
-    @staticmethod
-    def timestamp_to_str(time):
-        return '{:4d}{:0>2d}{:0>2d}{:0>2d}{:0>2d}'.format(time.year, time.month, time.day, time.hour, time.minute)
-
     @property
     def run_timestamp(self):
         return self.vxparser.read_run_timestamp()
