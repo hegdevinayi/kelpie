@@ -2,6 +2,7 @@ import os
 import shutil
 import datetime
 from contextlib import contextmanager
+from kelpie.utils.serializable import jsonable
 
 
 @contextmanager
@@ -16,8 +17,7 @@ def change_working_dir(new_dir):
 
 def time_stamped_folder(base_name='archive'):
     now = datetime.datetime.now()
-    time_stamp = '{:4d}{:0>2d}{:0>2d}{:0>2d}{:0>2d}'.format(now.year, now.month, now.day, now.hour, now.minute)
-    return '_'.join([base_name, time_stamp])
+    return '_'.join([base_name, jsonable(now)])
 
 
 def backup_files(list_of_files=None, folder_name='archive', gzip=True):
