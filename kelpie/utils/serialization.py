@@ -17,6 +17,8 @@ def jsonable(data, ignore_failures=True):
         return
     elif isinstance(data, (bool, int, float, six.string_types)):
         return data
+    elif isinstance(data, list):
+        return [jsonable(v) for v in data]
     elif isinstance(data, datetime.datetime):
         return datetime_to_str(data)
     elif isinstance(data, np.ndarray):
