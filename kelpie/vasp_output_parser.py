@@ -1,6 +1,6 @@
 import os
-import numpy as np
 import gzip
+import numpy as np
 import datetime
 from lxml import etree
 
@@ -15,13 +15,13 @@ class VasprunXMLParser(object):
 
     def __init__(self, vasprunxml_file=None):
         """
-        :param vasprunxml_file: name of the vasprun.xml file (default='vasprun.xml')
-        :type vasprunxml_file: str
+        :param vasprunxml_file: name of the vasprun.xml file (default: None)
+        :type vasprunxml_file: str or None
         """
         self._vasprunxml_file = None
-        self.vasprunxml_file = vasprunxml_file
+        self._xmlroot = None
 
-        self.xmlroot = self._get_vasprunxml_root()
+        self.vasprunxml_file = vasprunxml_file
 
     @property
     def vasprunxml_file(self):
@@ -32,9 +32,10 @@ class VasprunXMLParser(object):
         if vasprunxml_file is None:
             return
         if not os.path.isfile(vasprunxml_file):
-            error_message = 'Cannot find specified vasprun.xml file: {}'.format(vasprunxml_file)
+            error_message = 'Cannot find the specified vasprun.xml file: {}'.format(vasprunxml_file)
             raise VasprunXMLParserError(error_message)
         self._vasprunxml_file = os.path.abspath(vasprunxml_file)
+        self._xmlroot = self._get_vasprunxml_root()
 
     def _get_vasprunxml_root(self):
         """Read contents from a vasprun.xml or vasprun.xml.gz file, convert it into
@@ -47,12 +48,16 @@ class VasprunXMLParser(object):
         if self.vasprunxml_file is None:
             return
         parser = etree.XMLParser(remove_blank_text=True)
-        tree = etree.parse(self.vasprunxml_file)
+        tree = etree.parse(self.vasprunxml_file, parser=parser)
         xmlroot = tree.getroot()
         if xmlroot.tag != 'modeling':
             error_message = 'Root element of vasprun.xml "modeling" not found'
             raise VasprunXMLParserError(error_message)
         return xmlroot
+
+    @property
+    def xmlroot(self):
+        return self._xmlroot
 
     def read_composition_information(self):
         """Read the list of elemental species in the unit cell, and number of atoms, atomic mass, number of valence
@@ -352,4 +357,66 @@ class VasprunXMLParser(object):
                         scstep_times.append(float(time.text.strip().split()[-1]))
             scf_looptimes[n_ionic_step] = scstep_times
         return scf_looptimes
+
+
+class VaspOutcarParserError(Exception):
+    """Base class to handle errors related to parsing the VASP OUTCAR file."""
+
+
+class VaspOutcarParser(object):
+    """Base class to parse relevant output from a VASP OUTCAR file. Currently only for data not present in the
+    vasprun.xml file. For example, atom-projected charge and magnetic moment information.
+    """
+
+    def __init__(self, vasp_outcar_file=None):
+        """
+        :param vasp_outcar_file: name of the VASP OUTCAR file (default: None)
+        :type vasp_outcar_file: str or None
+        """
+        self._vasp_outcar_file = None
+        self._outcar = None
+
+        self.vasp_outcar_file = vasp_outcar_file
+
+    @property
+    def vasp_outcar_file(self):
+        return self._vasp_outcar_file
+
+    @vasp_outcar_file.setter
+    def vasp_outcar_file(self, vasp_outcar_file):
+        if vasp_outcar_file is None:
+            return
+        if not os.path.isfile(vasp_outcar_file):
+            error_message = 'Cannot find the specified VASP OUTCAR file: {}'.format(vasp_outcar_file)
+            raise VaspOutcarParserError(error_message)
+        self._vasp_outcar_file = os.path.abspath(vasp_outcar_file)
+        self._outcar = self._get_outcar_contents()
+
+    def _get_outcar_contents(self):
+        if self.vasp_outcar_file is None:
+            return
+        if os.path.splitext(self.vasp_outcar_file)[-1] == '.gz':
+            with gzip.open(self.vasp_outcar_file, 'rb') as fr:
+                return fr.read()
+        with open(self.vasp_outcar_file, 'r') as fr:
+            return fr.read()
+
+    @property
+    def outcar(self):
+        return self._outcar
+
+    def read_projected_charge(self):
+        if self.outcar is None:
+            return
+        outcar_lines = self.outcar.splitlines()
+        for r_index, line in enumerate(outcar_lines[::-1]):
+            if "magnetization (x)" in line:
+                index = len(outcar_lines) - r_index - 1
+                break
+        if "magnetization (x)" in outcar_lines[index] and "# of ion" in outcar_lines[index + 2]:
+            pass
+
+    def get_magnetization(self):
+        return
+
 
