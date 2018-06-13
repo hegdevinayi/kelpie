@@ -393,6 +393,7 @@ class VaspOutcarParser(object):
         self._outcar = self._get_outcar_contents()
 
     def _get_outcar_contents(self):
+        """Return the contents of a given VASP OUTCAR file."""
         if self.vasp_outcar_file is None:
             return
         if os.path.splitext(self.vasp_outcar_file)[-1] == '.gz':
@@ -405,18 +406,83 @@ class VaspOutcarParser(object):
     def outcar(self):
         return self._outcar
 
-    def read_projected_charge(self):
+    def read_orb_projected_charge(self):
+        """Read the orbital-projected charge block (example below) in a VASP OUTCAR file, if present.
+
+         total charge
+
+        # of ion       s       p       d       tot
+        ------------------------------------------
+            1        0.476   0.546   7.466   8.488
+            2        0.476   0.545   7.465   8.486
+            3        2.192   6.110   1.929  10.231
+            4        2.192   6.110   1.935  10.237
+            ...
+           12        0.470   0.560   6.454   7.485
+        --------------------------------------------------
+        tot         14.948  32.175  35.925  83.048
+
+        :return: {atom1: {'s': charge_s1, 'p': charge_p1, ...}, 2: {...}, ...}
+        :rtype: dict(int, dict(str, float))
+        """
         if self.outcar is None:
             return
         outcar_lines = self.outcar.splitlines()
+        start_index = None
         for r_index, line in enumerate(outcar_lines[::-1]):
-            if "magnetization (x)" in line:
-                index = len(outcar_lines) - r_index - 1
+            if 'total charge' in line:
+                if '# of ion' in outcar_lines[len(outcar_lines) - r_index + 1]:
+                    start_index = len(outcar_lines) - r_index - 1
+                    break
+        if start_index is None or start_index < 0:
+            return
+        keys = outcar_lines[start_index+2].strip().split()[3:]
+        charges = {}
+        for line in outcar_lines[start_index+4:]:
+            if line.startswith('----------------'):
                 break
-        if "magnetization (x)" in outcar_lines[index] and "# of ion" in outcar_lines[index + 2]:
-            pass
+            index = int(line.strip().split()[0])
+            charges[index] = dict([(k, float(v)) for k, v in zip(keys, line.strip().split()[1:])])
+        return charges
 
-    def get_magnetization(self):
-        return
+    def read_orb_projected_magnetization(self):
+        """Read the orbital-projected magnetization block (example below) in a VASP OUTCAR file, if present.
 
+         magnetization (x)
 
+        # of ion       s       p       d       tot
+        ------------------------------------------
+            1       -0.000   0.018   0.033   0.050
+            2       -0.000   0.018   0.034   0.052
+            3       -0.003   0.004  -0.009  -0.008
+            4       -0.002   0.004  -0.016  -0.014
+            5       -0.008   0.001  -0.187  -0.195
+            6       -0.008   0.000  -0.187  -0.196
+            ...
+           11        0.008   0.031   1.069   1.108
+           12        0.009   0.030   1.058   1.097
+        --------------------------------------------------
+        tot         -0.005   0.147   1.792   1.934
+
+        :return: {atom1: {'s': magmom_s1, 'p': magmom_p1, ...}, atom2: ...}
+        :rtype: dict(int, dict(str, float))
+        """
+        if self.outcar is None:
+            return
+        outcar_lines = self.outcar.splitlines()
+        start_index = None
+        for r_index, line in enumerate(outcar_lines[::-1]):
+            if 'magnetization (x)' in line:
+                if '# of ion' in outcar_lines[len(outcar_lines) - r_index + 1]:
+                    start_index = len(outcar_lines) - r_index - 1
+                    break
+        if start_index is None or start_index < 0:
+            return
+        keys = outcar_lines[start_index+2].strip().split()[3:]
+        moments = {}
+        for line in outcar_lines[start_index+4:]:
+            if line.startswith('----------------'):
+                break
+            index = int(line.strip().split()[0])
+            moments[index] = dict([(k, float(v)) for k, v in zip(keys, line.strip().split()[1:])])
+        return moments
