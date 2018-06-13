@@ -12,18 +12,24 @@ class VaspCalculationDataError(Exception):
 class VaspCalculationData(object):
     """Base class to store output data from a VASP calculation."""
 
-    def __init__(self, vasprunxml_file=None):
+    def __init__(self, vasprunxml_file=None, vasp_outcar_file=None):
         """
         :param vasprunxml_file: Path to the vasprun.xml file to parse.
         """
         self._vasprunxml_file = None
         self.vasprunxml_file = vasprunxml_file
 
+        self._vasp_outcar_file = None
+        self.vasp_outcar_file = vasp_outcar_file
+
         # Data from vasp_output_parser.VasprunXMLParser accessible as properties
         self._vxparser = vasp_output_parser.VasprunXMLParser(vasprunxml_file=self.vasprunxml_file)
 
         # Data from dos.DOS accessible as properties
         self._density_of_states = dos.DOS(vasprunxml_file=self.vasprunxml_file)
+
+        # Data from vasp_output_parser.VaspOutcarParser accessible as properties
+        self._voutparser = vasp_output_parser.VaspOutcarParser(vasp_outcar_file=self.vasp_outcar_file)
 
     @property
     def vasprunxml_file(self):
@@ -36,6 +42,18 @@ class VaspCalculationData(object):
     @property
     def vxparser(self):
         return self._vxparser
+
+    @property
+    def vasp_outcar_file(self):
+        return self._vasp_outcar_file
+
+    @vasp_outcar_file.setter
+    def vasp_outcar_file(self, vasp_outcar_file):
+        self._vasp_outcar_file = vasp_outcar_file
+
+    @property
+    def voutparser(self):
+        return self._voutparser
 
     @property
     def run_timestamp(self):
@@ -169,6 +187,24 @@ class VaspCalculationData(object):
     @property
     def dos_band_gap(self):
         return self.density_of_states.band_gap
+
+    @property
+    def orb_projected_charge(self):
+        return self.voutparser.read_orb_projected_charge()
+
+    @property
+    def orb_projected_magnetization(self):
+        return self.voutparser.read_orb_projected_magnetization()
+
+    @property
+    def total_orb_projected_charge(self):
+        charges = self.orb_projected_charge
+        return dict([(k, sum([charges[index][k] for index in charges])) for k in charges.get(1, {}).keys()])
+
+    @property
+    def total_orb_projected_magnetization(self):
+        moments = self.orb_projected_magnetization
+        return dict([(k, sum([moments[index][k] for index in moments])) for k in moments.get(1, {}).keys()])
 
     @property
     def initial_entropy(self):
@@ -319,6 +355,10 @@ class VaspCalculationData(object):
             'valence_band_maximum',
             'conduction_band_minimum',
             'dos_band_gap',
+            'orb_projected_magnetization',
+            'orb_projected_charge',
+            'total_orb_projected_magnetization',
+            'total_orb_projected_charge',
             'initial_entropy',
             'final_entropy',
             'initial_free_energy',
