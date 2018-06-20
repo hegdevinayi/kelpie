@@ -64,6 +64,10 @@ class VaspCalculationData(object):
         return self.vxparser.read_composition_information()
 
     @property
+    def unit_cell_formula(self):
+        return dict([(k, v['natoms']) for k, v in self.composition_info.items()])
+
+    @property
     def list_of_atoms(self):
         return self.vxparser.read_list_of_atoms()
 
@@ -339,6 +343,7 @@ class VaspCalculationData(object):
         _PROPERTIES = [
             'run_timestamp',
             'composition_info',
+            'unit_cell_formula',
             'list_of_atoms',
             'n_atoms',
             'n_ionic_steps',
