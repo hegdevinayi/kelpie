@@ -142,6 +142,23 @@ class VaspCalculationData(object):
         return self.vxparser.read_scf_looptimes()
 
     @property
+    def average_scf_looptimes(self):
+        average_looptimes = {}
+        for ionic_step, looptimes in self.scf_looptimes:
+            average_looptimes[ionic_step] = sum(looptimes)/len(looptimes)
+        return average_looptimes
+
+    @property
+    def average_scf_looptime(self):
+        if self.average_scf_looptimes:
+            return sum(self.average_looptimes.values())/len(self.average_looptimes.keys())
+
+    @property
+    def average_n_scf_steps_per_ionic_step(self):
+        if self.scf_looptimes:
+            return sum([len(v) for v in self.scf_looptimes.values()])/len(self.n_ionic_steps)
+
+    @property
     def total_runtime(self):
         return self._calculate_total_runtime()
 
@@ -390,6 +407,9 @@ class VaspCalculationData(object):
             'final_lattice_vectors',
             'initial_atomic_coordinates',
             'final_atomic_coordinates',
+            'average_scf_looptimes',
+            'average_scf_looptime',
+            'average_n_scf_steps_per_ionic_step',
             'is_scf_converged',
             'are_forces_converged',
             'is_number_of_bands_converged',
