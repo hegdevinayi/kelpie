@@ -1,5 +1,7 @@
 import os
+import shutil
 import subprocess
+import json
 from kelpie import io
 from kelpie.structure import Structure
 from kelpie import files_and_folders
@@ -221,7 +223,8 @@ class RelaxationWorkflow(GenericWorkflow):
                                                 settings=relaxation_settings,
                                                 mpi_call=self.mpi_call,
                                                 **self.kwargs)
-        vcd.write_calculation_data(filename='relaxation_data.json')
+        with open('relaxation_data.json', 'w') as fw:
+            json.dump(vcd.as_dict(), fw, indent=2)
 
         if not converged:
             error_message = 'Error while performing the relaxation run(s)'
@@ -241,11 +244,10 @@ class RelaxationWorkflow(GenericWorkflow):
                                             settings=static_settings,
                                             mpi_call=self.mpi_call,
                                             **self.kwargs)
-        vcd.write_calculation_data(filename='static_data.json')
+        with open('static_data.json', 'w') as fw:
+            json.dump(vcd.as_dict(), fw, indent=2)
 
         if not converged:
             error_message = 'Error while performing the final static run'
             raise KelpieWorkflowError(error_message)
-
-
 
