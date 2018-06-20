@@ -247,6 +247,16 @@ class VaspCalculationData(object):
         return self.cell_volumes.get(self.n_ionic_steps - 1, None)
 
     @property
+    def initial_volume_pa(self):
+        if all([v is not None for v in [self.initial_cell_volume, self.natoms]]):
+            return self.initial_cell_volume/self.natoms
+
+    @property
+    def final_volume_pa(self):
+        if all([v is not None for v in [self.final_cell_volume, self.natoms]]):
+            return self.final_cell_volume/self.natoms
+
+    @property
     def initial_lattice_vectors(self):
         return self.lattice_vectors.get(0, None)
 
@@ -369,6 +379,8 @@ class VaspCalculationData(object):
             'final_stress_tensor',
             'initial_cell_volume',
             'final_cell_volume',
+            'initial_volume_pa',
+            'final_volume_pa',
             'initial_lattice_vectors',
             'final_lattice_vectors',
             'initial_atomic_coordinates',
