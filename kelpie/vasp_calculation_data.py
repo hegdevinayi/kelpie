@@ -151,12 +151,12 @@ class VaspCalculationData(object):
     @property
     def average_scf_looptime(self):
         if self.average_scf_looptimes:
-            return sum(self.average_looptimes.values())/len(self.average_looptimes.keys())
+            return sum(self.average_scf_looptimes.values())/len(self.average_scf_looptimes.keys())
 
     @property
     def average_n_scf_steps_per_ionic_step(self):
         if self.scf_looptimes:
-            return sum([len(v) for v in self.scf_looptimes.values()])/len(self.n_ionic_steps)
+            return sum([len(v) for v in self.scf_looptimes.values()])/self.n_ionic_steps
 
     @property
     def total_runtime(self):
@@ -269,13 +269,13 @@ class VaspCalculationData(object):
 
     @property
     def initial_volume_pa(self):
-        if all([v is not None for v in [self.initial_cell_volume, self.natoms]]):
-            return self.initial_cell_volume/self.natoms
+        if all([v is not None for v in [self.initial_cell_volume, self.n_atoms]]):
+            return self.initial_cell_volume/self.n_atoms
 
     @property
     def final_volume_pa(self):
-        if all([v is not None for v in [self.final_cell_volume, self.natoms]]):
-            return self.final_cell_volume/self.natoms
+        if all([v is not None for v in [self.final_cell_volume, self.n_atoms]]):
+            return self.final_cell_volume/self.n_atoms
 
     @property
     def initial_lattice_vectors(self):
