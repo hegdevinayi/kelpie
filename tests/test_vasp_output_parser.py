@@ -100,11 +100,6 @@ class TestVasprunXMLParser(unittest.TestCase):
         self.assertEqual(len(scf_looptimes[0]), 15)
         self.assertListEqual(scf_looptimes[2][:3], [2.58, 2.47, 3.12])
 
-    @unittest.skip
-    def test_calculate_total_runtime(self):
-        scf_looptimes = self.vxparser.read_scf_looptimes()
-        self.assertAlmostEqual(self.vxparser.calculate_total_runtime(scf_looptimes), 91.6)
-
 
 if __name__ == '__main__':
     unittest.main()
