@@ -23,6 +23,8 @@ def jsonable(data, ignore_failures=True):
         return datetime_to_str(data)
     elif isinstance(data, np.ndarray):
         return data.tolist()
+    elif isinstance(data, np.floating):
+        return float(data)
     else:
         if ignore_failures:
             return
