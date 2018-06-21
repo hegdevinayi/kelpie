@@ -30,6 +30,7 @@ class DOS(object):
         self._energies = self.get_energies()
         self._total_dos = self.get_total_dos()
         self._total_integrated_dos = self.get_total_integrated_dos()
+        self._projected_dos = None
 
     @property
     def vasprunxml_file(self):
