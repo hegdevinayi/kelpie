@@ -337,7 +337,7 @@ class VaspCalculationData(object):
     def is_basis_converged(self, volume_only=False, threshold=1E-2):
         if volume_only:
             delta_vol = (self.cell_volumes[self.n_ionic_steps - 1] - self.cell_volumes[0])/self.cell_volumes[0]
-            return delta_vol <= abs(threshold)
+            return delta_vol <= abs(3.*threshold)
         else:
             converged = True
             for i in range(3):
