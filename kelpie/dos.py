@@ -170,7 +170,7 @@ class DOS(object):
             bracket_index = efermi_index + 1
         elif self.energies[efermi_index] > 0:
             bracket_index = efermi_index - 1
-        return ((self.total_dos[spin][efermi_index] > tol) and (self.total_dos[spin][bracket_index] > tol))
+        return (self.total_dos[spin][efermi_index] > tol) and (self.total_dos[spin][bracket_index] > tol)
 
     def check_if_metal(self, tol=1e-3):
         return dict([(spin, self._check_if_metal(spin=spin, tol=tol)) for spin in self.total_dos])
