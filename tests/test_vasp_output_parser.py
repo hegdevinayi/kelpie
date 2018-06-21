@@ -57,8 +57,7 @@ class TestVasprunXMLParser(unittest.TestCase):
     def test_read_atomic_coordinates(self):
         atomic_coordinates = self.vxparser.read_atomic_coordinates()
         self.assertEqual(len(atomic_coordinates[0]), 3)
-        self.assertListEqual([list(atoms.keys()) for atoms in atomic_coordinates[0]], [['Ca'], ['F'], ['F']])
-        self.assertAlmostEqual(atomic_coordinates[1][1]['F'][2], 0.24999888)
+        self.assertAlmostEqual(atomic_coordinates[1][1][2], 0.24999888)
 
     def test_read_kpoint_mesh(self):
         kpoint_mesh = self.vxparser.read_kpoint_mesh()
