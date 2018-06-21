@@ -336,13 +336,13 @@ class VaspCalculationData(object):
 
     def is_basis_converged(self, volume_only=False, threshold=1E-2):
         if volume_only:
-            delta_vol = (self.cell_volumes[self.n_ionic_steps - 1] - self.cell_volumes[0])/self.cell_volumes[0]
+            delta_vol = (self.final_cell_volume - self.initial_cell_volume)/self.initial_cell_volume
             return delta_vol <= abs(3.*threshold)
         else:
             converged = True
             for i in range(3):
-                lv_final = numpy.linalg.norm(self.lattice_vectors[self.n_ionic_steps - 1][i])
-                lv_initial = numpy.linalg.norm(self.lattice_vectors[0][i])
+                lv_final = numpy.linalg.norm(self.final_lattice_vectors[i])
+                lv_initial = numpy.linalg.norm(self.initial_lattice_vectors[i])
                 if (lv_final - lv_initial)/lv_initial > abs(threshold):
                     converged = False
                     break
