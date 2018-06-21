@@ -248,7 +248,7 @@ class VaspCalculationData(object):
         return self.free_energies.get(self.n_ionic_steps - 1, None)
 
     @property
-    def intial_forces(self):
+    def initial_forces(self):
         return self.forces.get(0, None)
 
     @property
