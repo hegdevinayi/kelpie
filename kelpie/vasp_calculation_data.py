@@ -132,7 +132,7 @@ class VaspCalculationData(object):
         return self.vxparser.read_band_occupations()
 
     @property
-    def nbands(self):
+    def n_bands(self):
         for spin in self.band_occupations:
             for kpoint in self.band_occupations[spin]:
                 return len(self.band_occupations[spin][kpoint]['band_energy'])

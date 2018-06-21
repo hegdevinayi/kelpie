@@ -129,11 +129,11 @@ class GenericWorkflow(object):
             # 1.2*N_bands_old or N_bands_old+4 whichever is higher
             # make sure settings are carried over to the static calculation
             if not vcd.is_number_of_bands_converged():
-                nbands = max([int(vcd.nbands*1.2), vcd.nbands+4])
-                settings.update({'nbands': nbands})
+                n_bands = max([int(vcd.n_bands * 1.2), vcd.n_bands + 4])
+                settings.update({'n_bands': n_bands})
                 self._custom_calculation_settings.update({
-                    'relaxation': {'nbands': nbands},
-                    'static': {'nbands': nbands}
+                    'relaxation': {'n_bands': n_bands},
+                    'static': {'n_bands': n_bands}
                 })
             try:
                 output_structure = io.read_poscar('CONTCAR')
