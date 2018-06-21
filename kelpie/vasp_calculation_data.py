@@ -261,7 +261,7 @@ class VaspCalculationData(object):
 
     @property
     def final_stress_tensor(self):
-        return self.stress_tensors(self.n_ionic_steps - 1, None)
+        return self.stress_tensors.get(self.n_ionic_steps - 1, None)
 
     @property
     def initial_cell_volume(self):
