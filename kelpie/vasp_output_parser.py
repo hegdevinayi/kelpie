@@ -234,8 +234,8 @@ class VasprunXMLParser(object):
             varray = ionic_step.find('./structure/varray')
             if varray.attrib['name'] != 'positions':
                 continue
-            for atom, coordinates in zip(atomslist, varray.findall('v')):
-                atomic_coordinates[n_ionic_step].append({atom: [float(e) for e in coordinates.text.split()]})
+            for coordinates in varray.findall('v'):
+                atomic_coordinates[n_ionic_step].append([float(e) for e in coordinates.text.split()])
         return atomic_coordinates
 
     def read_cell_volumes(self):
