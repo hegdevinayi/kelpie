@@ -220,11 +220,15 @@ class VaspCalculationData(object):
     @property
     def total_orb_projected_charge(self):
         charges = self.orb_projected_charge
+        if not charges:
+            return
         return dict([(k, sum([charges[index][k] for index in charges])) for k in charges.get(1, {}).keys()])
 
     @property
     def total_orb_projected_magnetization(self):
         moments = self.orb_projected_magnetization
+        if not moments:
+            return
         return dict([(k, sum([moments[index][k] for index in moments])) for k in moments.get(1, {}).keys()])
 
     @property
