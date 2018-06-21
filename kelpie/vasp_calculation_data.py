@@ -287,7 +287,7 @@ class VaspCalculationData(object):
 
     @property
     def final_lattice_vectors(self):
-        return self.lattice_vectors(self.n_ionic_steps - 1, None)
+        return self.lattice_vectors.get(self.n_ionic_steps - 1, None)
 
     @property
     def initial_atomic_coordinates(self):
