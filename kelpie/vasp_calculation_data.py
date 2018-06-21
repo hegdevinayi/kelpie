@@ -144,7 +144,7 @@ class VaspCalculationData(object):
     @property
     def average_scf_looptimes(self):
         average_looptimes = {}
-        for ionic_step, looptimes in self.scf_looptimes:
+        for ionic_step, looptimes in self.scf_looptimes.items():
             average_looptimes[ionic_step] = sum(looptimes)/len(looptimes)
         return average_looptimes
 
@@ -156,7 +156,7 @@ class VaspCalculationData(object):
     @property
     def average_n_scf_steps_per_ionic_step(self):
         if self.scf_looptimes:
-            return sum([len(v) for v in self.scf_looptimes.values()])/self.n_ionic_steps
+            return float(sum([len(v) for v in self.scf_looptimes.values()]))/self.n_ionic_steps
 
     @property
     def total_runtime(self):
