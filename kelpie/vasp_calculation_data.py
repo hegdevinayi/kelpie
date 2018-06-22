@@ -312,6 +312,10 @@ class VaspCalculationData(object):
                     break
             return converged
 
+    @property
+    def scf_converged(self):
+        return self.is_scf_converged()
+
     def are_forces_converged(self, threshold=1E-2):
         converged = True
         for atom_forces in self.forces[self.n_ionic_steps - 1]:
@@ -319,6 +323,10 @@ class VaspCalculationData(object):
                 converged = False
                 break
         return converged
+
+    @property
+    def forces_converged(self):
+        return self.are_forces_converged()
 
     def is_number_of_bands_converged(self, threshold=1E-2):
         highest_band_energy = float('-inf')
@@ -334,6 +342,10 @@ class VaspCalculationData(object):
                         continue
         return highest_band_occ <= threshold
 
+    @property
+    def number_of_bands_converged(self):
+        return self.is_number_of_bands_converged()
+
     def is_basis_converged(self, volume_only=False, threshold=1E-2):
         if volume_only:
             delta_vol = (self.final_cell_volume - self.initial_cell_volume)/self.initial_cell_volume
@@ -348,6 +360,10 @@ class VaspCalculationData(object):
                     break
             return converged
 
+    @property
+    def basis_converged(self):
+        return self.is_basis_converged()
+
     def is_fully_converged(self, scf_thresh=1E-6,
                            each_ionic_step=False,
                            force_thresh=1E-2,
@@ -359,6 +375,10 @@ class VaspCalculationData(object):
                      self.is_basis_converged(volume_only=volume_only, threshold=basis_thresh) and
                      self.is_number_of_bands_converged(threshold=band_occ_thresh))
         return converged
+
+    @property
+    def fully_converged(self):
+        return self.is_fully_converged()
 
     def as_dict(self, list_of_properties=None):
         _PROPERTIES = [
@@ -414,11 +434,11 @@ class VaspCalculationData(object):
             'average_scf_looptimes',
             'average_scf_looptime',
             'average_n_scf_steps_per_ionic_step',
-            'is_scf_converged',
-            'are_forces_converged',
-            'is_number_of_bands_converged',
-            'is_basis_converged',
-            'is_fully_converged',
+            'scf_converged',
+            'forces_converged',
+            'number_of_bands_converged',
+            'basis_converged',
+            'fully_converged',
         ]
 
         if list_of_properties is not None:
