@@ -1,4 +1,4 @@
-import numpy as np
+import numpy
 import six
 import datetime
 
@@ -21,10 +21,15 @@ def jsonable(data, ignore_failures=True):
         return [jsonable(v) for v in data]
     elif isinstance(data, datetime.datetime):
         return datetime_to_str(data)
-    elif isinstance(data, np.ndarray):
-        return data.tolist()
-    elif isinstance(data, np.floating):
-        return float(data)
+    elif isinstance(data, numpy.ndarray):
+        return jsonable(data.tolist())
+    elif isinstance(data, (numpy.integer, numpy.floating, numpy.bool_)):
+        return numpy.asscalar(data)
+    elif isinstance(data, dict):
+        json_data = {}
+        for k, v in data.items():
+            json_data[k] = jsonable(v)
+        return json_data
     else:
         if ignore_failures:
             return
