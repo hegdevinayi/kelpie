@@ -48,11 +48,11 @@ class VasprunXMLParser(object):
         if self.vasprunxml_file is None:
             return
         parser = etree.XMLParser(remove_blank_text=True)
-        tree = etree.parse(self.vasprunxml_file, parser=parser)
         try:
-            xmlroot = tree.getroot()
+            tree = etree.parse(self.vasprunxml_file, parser=parser)
         except etree.XMLSyntaxError:
             return
+        xmlroot = tree.getroot()
         if xmlroot.tag != 'modeling':
             error_message = 'Root element of vasprun.xml "modeling" not found'
             raise VasprunXMLParserError(error_message)
