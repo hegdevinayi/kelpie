@@ -99,7 +99,7 @@ class DOS(object):
             return self.get_energies_from_doscar()
 
     def get_energies_from_xml(self):
-        if self.total_dos_data is None:
+        if not self.total_dos_data:
             return
         return np.array([gridpoint[0] - self.fermi_energy for gridpoint in self.total_dos_data['spin_1']])
 
@@ -138,7 +138,7 @@ class DOS(object):
             return self.get_total_integrated_dos_from_doscar()
 
     def get_total_integrated_dos_from_xml(self):
-        if self.total_dos_data is None:
+        if not self.total_dos_data:
             return
         total_intdos = {}
         for spin in self.total_dos_data:
@@ -165,10 +165,12 @@ class DOS(object):
         raise NotImplementedError
 
     def _check_if_metal(self, spin='spin_1', tol=1e-3):
+        if not self.energies:
+            return
         efermi_index = np.abs(self.energies).argmin()
         if self.energies[efermi_index] < 0:
             bracket_index = efermi_index + 1
-        elif self.energies[efermi_index] > 0:
+        else:
             bracket_index = efermi_index - 1
         return (self.total_dos[spin][efermi_index] > tol) and (self.total_dos[spin][bracket_index] > tol)
 
@@ -180,7 +182,8 @@ class DOS(object):
         return self.check_if_metal()
 
     def _find_vbm(self, spin='spin_1', tol=1e-3):
-        if self._check_if_metal(spin=spin, tol=tol):
+        is_metal = self._check_if_metal(spin=spin, tol=tol)
+        if is_metal is None or is_metal:
             return
         efermi_index = np.abs(self.energies).argmin()
         if self.energies[efermi_index] < 0:
@@ -198,7 +201,8 @@ class DOS(object):
         return self.find_vbm()
 
     def _find_cbm(self, spin='spin_1', tol=1e-3):
-        if self._check_if_metal(spin=spin, tol=tol):
+        is_metal = self._check_if_metal(spin=spin, tol=tol)
+        if is_metal is None or is_metal:
             return
         efermi_index = np.abs(self.energies).argmin()
         if self.energies[efermi_index] > 0:
@@ -216,7 +220,9 @@ class DOS(object):
         return self.find_cbm()
 
     def _calculate_band_gap(self, spin='spin_1', tol=1e-3):
-        return (self.cbm[spin] - self.vbm[spin]) if not self._check_if_metal(spin=spin, tol=tol) else 0.0
+        is_metal = self._check_if_metal(spin=spin, tol=tol)
+        if is_metal is not None:
+            return (self.cbm[spin] - self.vbm[spin]) if not is_metal else 0.0
 
     def calculate_band_gap(self, tol=1e-3):
         return dict([(spin, self._calculate_band_gap(spin=spin, tol=tol)) for spin in self.total_dos])
