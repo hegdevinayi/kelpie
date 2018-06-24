@@ -165,7 +165,7 @@ class DOS(object):
         raise NotImplementedError
 
     def _check_if_metal(self, spin='spin_1', tol=1e-3):
-        if not self.energies:
+        if self.energies is None or not self.energies.size:
             return
         efermi_index = np.abs(self.energies).argmin()
         if self.energies[efermi_index] < 0:
