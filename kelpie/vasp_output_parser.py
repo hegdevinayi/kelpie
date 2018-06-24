@@ -397,8 +397,11 @@ class VaspOutcarParser(object):
         if self.vasp_outcar_file is None:
             return
         if os.path.splitext(self.vasp_outcar_file)[-1] == '.gz':
-            with gzip.open(self.vasp_outcar_file, 'rb') as fr:
-                return fr.read().decode('utf-8')
+            try:
+                with gzip.open(self.vasp_outcar_file, 'rb') as fr:
+                    return fr.read().decode('utf-8')
+            except OSError:
+                pass
         with open(self.vasp_outcar_file, 'r') as fr:
             return fr.read()
 
