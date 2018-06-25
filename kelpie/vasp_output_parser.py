@@ -395,6 +395,7 @@ class VaspOutcarParser(object):
         self._outcar = None
 
         self.vasp_outcar_file = vasp_outcar_file
+        self._n_ions = self._get_n_ions()
 
     @property
     def vasp_outcar_file(self):
@@ -426,6 +427,19 @@ class VaspOutcarParser(object):
     @property
     def outcar(self):
         return self._outcar
+
+    def _get_n_ions(self):
+        if self.outcar is None:
+            return
+        outcar_lines = self.outcar.splitlines()
+        for line in outcar_lines:
+            if 'NIONS' in line:
+                n_ions = int(line.strip().split()[-1])
+                return n_ions
+
+    @property
+    def n_ions(self):
+        return self._n_ions
 
     def read_orb_projected_charge(self):
         """Read the orbital-projected charge block (example below) in a VASP OUTCAR file, if present.
@@ -459,12 +473,18 @@ class VaspOutcarParser(object):
             return
         keys = outcar_lines[start_index+2].strip().split()[3:]
         charges = {}
-        for line in outcar_lines[start_index+4:]:
-            if line.startswith('----------------'):
-                break
-            index = int(line.strip().split()[0])
-            charges[index] = dict([(k, float(v)) for k, v in zip(keys, line.strip().split()[1:])])
-        return charges
+        if self.n_ions is not None:
+            for line in outcar_lines[start_index+4:start_index+4+self.n_ions]:
+                index = int(line.strip().split()[0])
+                charges[index] = dict([(k, float(v)) for k, v in zip(keys, line.strip().split()[1:])])
+            return charges
+        else:
+            for line in outcar_lines[start_index+4:]:
+                if line.startswith('----------------') or not line.strip():
+                    break
+                index = int(line.strip().split()[0])
+                charges[index] = dict([(k, float(v)) for k, v in zip(keys, line.strip().split()[1:])])
+            return charges
 
     def read_orb_projected_magnetization(self):
         """Read the orbital-projected magnetization block (example below) in a VASP OUTCAR file, if present.
@@ -501,9 +521,15 @@ class VaspOutcarParser(object):
             return
         keys = outcar_lines[start_index+2].strip().split()[3:]
         moments = {}
-        for line in outcar_lines[start_index+4:]:
-            if line.startswith('----------------'):
-                break
-            index = int(line.strip().split()[0])
-            moments[index] = dict([(k, float(v)) for k, v in zip(keys, line.strip().split()[1:])])
-        return moments
+        if self.n_ions is not None:
+            for line in outcar_lines[start_index+4:start_index+4+self.n_ions]:
+                index = int(line.strip().split()[0])
+                moments[index] = dict([(k, float(v)) for k, v in zip(keys, line.strip().split()[1:])])
+            return moments
+        else:
+            for line in outcar_lines[start_index+4:]:
+                if line.startswith('----------------') or not line.strip():
+                    break
+                index = int(line.strip().split()[0])
+                moments[index] = dict([(k, float(v)) for k, v in zip(keys, line.strip().split()[1:])])
+            return moments
