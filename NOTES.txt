@@ -1,45 +1,15 @@
-[[ Kelpie Structure ]]
+[[ Finite-displacement Phonon Module ]]
 
--- Call kelpie with all the input that currently goes into VaspRunManager:
-input structure, host scheduler settings, custom scheduler settings, run
-location, calculation workflow, custom calculation settings, batch script
-template.
+NOW:
+- Phonopy an optional dependency (plug-in) for kelpie
+- Symmetrize the POSCAR into the Niggli-reduced cell (most isotropic)
+- Use phonopy to generate supercells with atomic displacements
+- PhononCalculation workflow that:
+  - takes as input all the displaced supercells
+  - performs static calculation for each to get forces
+- Use phonopy to calculate FCs, phonon frequencies, eigenvectors and other
+  derivate quantities
 
--- kelpie calls kelpie-breed passing on all the parameters.
-
--- kelpie-breed creates the [run location] directory if not present already,
-uses the [scheduler settings] to write a batch script to [run location], copies
-the [input structure] to [run location]. The batch script calls kelpie-graze
-passing on [input structure], [calculation workflow] and [custom calculation
-settings] as parameters. kelpie-breed can optionally submit the batch job as
-well.
-
--- kelpie-graze calls the corresponding workflow passing on all the parameters.
-
--- Each [workflow] is just a set of calculations: relaxation, static, nscf for
-DOS, nscf for band structure, etc. performed in a particular order with each
-[calculation] capable of copying/using files from previous, already completed
-[calculation(s)].
-
--- Each [calculation] receives [input structure] and [calculation settings] as
-parameters, creates a suitably named calculation directory (e.g., "relaxation",
-"static", "DOS") and calls VASP. If the run is not converged for some reason,
-repeats [calculation] a certain number of times, possibly with some
-error-handling between each run. For each new run, files from the previous run
-(large files gzipped) are copied into [run location]/[calculation
-directory]/"archive_[datetime timestamp yyyyMMddmm]" folder/.
-
--- If the entire [workflow] is successfully completed, kelpie-graze further
-calls kelpie-herd passing on [calculation workflow] as a parameter.
-
--- kelpie-herd gathers data from all the *final* calculations (e.g.,
-"relaxation" and "static" in the case of a "relaxation" workflow, "static" and
-"band_structure" in the case of a "band_structure" workflow) and writes them
-into [run location]/"[calculation name]_data.json" files.
-
-I. Each process exits with an error code (-1) if unsuccessful, with 0 if
-successful (subprocess.run() calls do this naturally).
-
-II. Keep in mind, apart from sensible defaults in each case, how the directory
-structure and old calculations files will be handled in the case of a restart
-(e.g., if the specified walltime was not enough).
+LATER:
+- Non-analytical term correction near G?
+- Quasi-harmonic phonons?
