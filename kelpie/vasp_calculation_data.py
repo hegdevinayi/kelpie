@@ -301,13 +301,13 @@ class VaspCalculationData(object):
         if not each_ionic_step:
             final_energy = self.scf_energies[self.n_ionic_steps - 1][-1]
             final_minus_energy = self.scf_energies[self.n_ionic_steps - 1][-2]
-            return final_energy - final_minus_energy <= abs(threshold)
+            return abs(final_energy - final_minus_energy) <= abs(threshold)
         else:
             converged = True
             for i in range(self.n_ionic_steps):
                 final_energy = self.scf_energies[i][-1]
                 final_minus_energy = self.scf_energies[i][-2]
-                if abs(final_energy - final_minus_energy) > abs(threshold):
+                if abs(final_energy - final_minus_energy) > abs(2.0*threshold):
                     converged = False
                     break
             return converged
