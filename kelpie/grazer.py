@@ -98,10 +98,11 @@ class KelpieGrazer(object):
     def calculation_workflow(self, calculation_workflow):
         if not calculation_workflow:
             self._calculation_workflow = 'relaxation'
-        elif calculation_workflow.lower() not in ['relaxation', 'static']:
-            raise NotImplementedError('Only relaxation and static workflows currently implemented.')
+        elif calculation_workflow.lower() not in ['relaxation', 'static',
+                                                  'acc_std_relax', 'sc_forces']:
+            raise NotImplementedError('Specified workflow currently not implemented.')
         else:
-            self._calculation_workflow = calculation_workflow.lower()
+            self._calculation_workflow = ''.join(calculation_workflow.title().split('_'))
 
     @property
     def custom_calculation_settings(self):
@@ -141,7 +142,7 @@ class KelpieGrazer(object):
         if not os.path.isdir(self.run_location):
             os.makedirs(self.run_location)
 
-        workflow = getattr(calculation_workflows, '{}Workflow'.format(self.calculation_workflow.title()))(
+        workflow = getattr(calculation_workflows, '{}Workflow'.format(self.calculation_workflow))(
             initial_structure=self.initial_structure,
             run_location=self.run_location,
             custom_calculation_settings=self.custom_calculation_settings,
