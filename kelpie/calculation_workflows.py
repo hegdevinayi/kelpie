@@ -133,6 +133,7 @@ class GenericWorkflow(object):
                 settings.update({'n_bands': n_bands})
                 self._custom_calculation_settings.update({
                     'relaxation': {'n_bands': n_bands},
+                    'acc_std_relax': {'n_bands': n_bands},
                     'static': {'n_bands': n_bands}
                 })
             try:
@@ -169,11 +170,13 @@ class GenericWorkflow(object):
         # increase "n_attempts": VASP has already been run once
         kwargs['n_attempts'] += 1
         # parse the calculation output and check if relevent convergence criteria are met
-        vcd = VaspCalculationData(vasprunxml_file='vasprun.xml')
+        vcd = VaspCalculationData(vasprunxml_file='vasprun.xml',
+                                  vasp_outcar_file='OUTCAR')
         converged = vcd.is_scf_converged(threshold=settings.get('ediff'))
 
         # recursively call do_static() until either convergence or maximum attempts have been reached
-        if not converged and kwargs['n_attempts'] <= 2:
+        max_nattempts = kwargs.get('max_nattempts', 1)
+        if not converged and kwargs['n_attempts'] < max_nattempts:
             files_and_folders.backup_files()
             return self.do_static(structure=structure,
                                   settings=settings,
@@ -249,5 +252,95 @@ class RelaxationWorkflow(GenericWorkflow):
 
         if not converged:
             error_message = 'Error while performing the final static run'
+            raise KelpieWorkflowError(error_message)
+
+
+class AccStdRelaxWorkflow(GenericWorkflow):
+    """Class with workflow for an accurate (e.g. for phonons) relaxation of the
+    Spglib-standardized primitive unit cell."""
+
+    def __init__(self,
+                 initial_structure=None,
+                 run_location=None,
+                 custom_calculation_settings=None,
+                 mpi_call=None,
+                 **kwargs):
+        super(AccStdRelaxWorkflow, self).__init__(initial_structure=initial_structure,
+                                                  run_location=run_location,
+                                                  custom_calculation_settings=custom_calculation_settings,
+                                                  mpi_call=mpi_call,
+                                                  **kwargs)
+
+    def perform_workflow(self, from_scratch=False):
+        #TODO: Make the directory structure more organic (avoid duplicate
+        # "initial_structure.vasp" files e.g.)
+        ##relaxation_dir = os.path.join(self.run_location, 'acc_std_relax')
+        relaxation_dir = os.path.join(self.run_location)
+        ### if from_scratch, delete the relaxation folder, if it exists
+        ##if from_scratch and os.path.isdir(relaxation_dir):
+        ##    shutil.rmtree(relaxation_dir)
+        ### create a "relaxation" folder, if one doesn't already exist
+        ##os.makedirs(relaxation_dir, exist_ok=True)
+        relaxation_settings = DEFAULT_VASP_INCAR_SETTINGS['acc_std_relax']
+        relaxation_settings.update(self.custom_calculation_settings.get('acc_std_relax', {}))
+        initial_structure = self.initial_structure
+        with files_and_folders.change_working_dir(relaxation_dir):
+            if not from_scratch:
+                previous_outcar = os.path.join(relaxation_dir, 'OUTCAR')
+                previous_contcar = os.path.join(relaxation_dir, 'CONTCAR')
+                previous_poscar = os.path.join(relaxation_dir, 'POSCAR')
+                if os.path.isfile(previous_outcar) and os.path.getsize(previous_outcar):
+                    files_and_folders.backup_files()
+                if os.path.isfile(previous_contcar) and os.path.getsize(previous_contcar):
+                    initial_structure = io.read_poscar(previous_contcar)
+                elif os.path.isfile(previous_poscar) and os.path.getsize(previous_poscar):
+                    initial_structure = io.read_poscar(previous_poscar)
+            vcd, converged = self.do_relaxation(structure=initial_structure,
+                                                settings=relaxation_settings,
+                                                mpi_call=self.mpi_call,
+                                                **self.kwargs)
+        with open('acc_std_relax_data.json', 'w') as fw:
+            json.dump(vcd.as_dict(), fw, indent=2)
+
+        if not converged:
+            error_message = 'Error while performing the relaxation run(s)'
+            raise KelpieWorkflowError(error_message)
+
+
+class ScForcesWorkflow(GenericWorkflow):
+    """Class with the workflow for the calculation of forces in supercells with
+    (a) displaced atom(s)."""
+
+    def __init__(self,
+                 initial_structure=None,
+                 run_location=None,
+                 custom_calculation_settings=None,
+                 mpi_call=None,
+                 **kwargs):
+        super(ScForcesWorkflow, self).__init__(initial_structure=initial_structure,
+                                               run_location=run_location,
+                                               custom_calculation_settings=custom_calculation_settings,
+                                               mpi_call=mpi_call,
+                                               **kwargs)
+
+    def perform_workflow(self, from_scratch=False):
+        calc_dir = os.path.join(self.run_location)
+        calc_settings = DEFAULT_VASP_INCAR_SETTINGS['sc_forces']
+        calc_settings.update(self.custom_calculation_settings.get('sc_forces', {}))
+        initial_structure = self.initial_structure
+        with files_and_folders.change_working_dir(calc_dir):
+            if not from_scratch:
+                previous_outcar = os.path.join(calc_dir, 'OUTCAR')
+                if os.path.isfile(previous_outcar) and os.path.getsize(previous_outcar):
+                    files_and_folders.backup_files()
+            vcd, converged = self.do_static(structure=initial_structure,
+                                            settings=calc_settings,
+                                            mpi_call=self.mpi_call,
+                                            **self.kwargs)
+        with open('sc_forces_data.json', 'w') as fw:
+            json.dump(vcd.as_dict(), fw, indent=2)
+
+        if not converged:
+            error_message = 'Error during (scf) calculation of forces'
             raise KelpieWorkflowError(error_message)
 
