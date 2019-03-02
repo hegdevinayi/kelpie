@@ -3,7 +3,7 @@
   "icharg": 1,
   "prec": "acc",
   "lreal": false,
-  "encut": 600,
+  "encut": 520,
   "kspacing": 0.15,
   "kgamma": true,
   "algo": "normal",
