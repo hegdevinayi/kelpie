@@ -20,7 +20,8 @@
     "encut",
     "kspacing",
     "kgamma",
-    "gga"
+    "gga",
+    "addgrid"
   ],
   "electronic_relaxation": [
     "algo",
