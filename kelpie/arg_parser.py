@@ -105,7 +105,8 @@ Defaults to "relaxation".
 """
         calculation_args.add_argument('-w', '--calculation-workflow',
                                       default='relaxation',
-                                      choices=['relaxation', 'static'],
+                                      choices=['relaxation', 'static',
+                                               'acc_std_relax', 'sc_forces'],
                                       help=calculation_workflow_help)
 
         custom_calculation_settings_help = """Absolute path to a JSON file with a
