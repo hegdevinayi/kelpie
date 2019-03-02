@@ -2,7 +2,7 @@ import os
 import shutil
 import datetime
 from contextlib import contextmanager
-from kelpie.utils.serializable import jsonable
+from kelpie.utils.serialization import jsonable
 
 
 @contextmanager
