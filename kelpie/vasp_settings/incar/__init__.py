@@ -9,7 +9,7 @@ with open(incar_tags_file, 'r') as fr:
     VASP_INCAR_TAGS = json.load(fr)
 
 # read in default VASP settings for difference calculation_types
-calculation_types = ['relaxation', 'static']
+calculation_types = ['relaxation', 'static', 'acc_std_relax', 'sc_forces']
 # module variable DEFAULT_VASP_INCAR_SETTINGS
 DEFAULT_VASP_INCAR_SETTINGS = {}
 for calculation_type in calculation_types:
