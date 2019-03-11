@@ -277,6 +277,9 @@ class VaspInputGenerator(object):
         if scheme not in HUBBARD_U_VALUES:
             error_message = 'Cannot find the specified scheme "{}" for Hubbard U values to use'.format(scheme)
             raise VaspInputError(error_message)
+        if 'O' not in self.structure.list_of_species:
+            hubbards = {'ldau': False}
+            return hubbards
         ldaul = []
         ldauu = []
         ldauj = []
