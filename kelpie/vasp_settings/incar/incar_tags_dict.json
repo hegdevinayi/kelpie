@@ -21,7 +21,8 @@
     "kspacing",
     "kgamma",
     "gga",
-    "addgrid"
+    "addgrid",
+    "pstress"
   ],
   "electronic_relaxation": [
     "algo",
