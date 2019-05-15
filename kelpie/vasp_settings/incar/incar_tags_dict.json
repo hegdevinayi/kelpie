@@ -7,6 +7,7 @@
     "dos",
     "write",
     "hubbard_u",
+    "hybrid",
     "mixing",
     "parallelization"
   ],
@@ -67,6 +68,13 @@
     "ldaul",
     "lmaxmix",
     "ldauprint"
+  ],
+  "hybrid": [
+      "lhfcalc",
+      "hfscreen",
+      "precfock",
+      "time",
+      "aexx"
   ],
   "mixing": [
     "amix",
