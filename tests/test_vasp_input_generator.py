@@ -26,7 +26,7 @@ class TestVaspInputGenerator(unittest.TestCase):
         self.assertAlmostEqual(self.ig.calculation_settings['potim'], 0.187)
 
     def test_calculation_settings_setter_encut_ediff(self):
-        self.assertAlmostEqual(self.ig.calculation_settings['encut'], 600.)
+        self.assertAlmostEqual(self.ig.calculation_settings['encut'], 520.)
         self.assertAlmostEqual(self.ig.calculation_settings['ediff'], 15E-08)
 
     def test_write_location_setter_default(self):
@@ -62,7 +62,7 @@ class TestVaspInputGenerator(unittest.TestCase):
         self.assertEqual(VaspInputGenerator.roundup_encut(271.335), 280)
 
     def test_set_calculation_encut(self):
-        self.assertEqual(self.ig.calculation_settings['encut'], 600)
+        self.assertEqual(self.ig.calculation_settings['encut'], 520)
 
     def test_scale_ediff_per_atom(self):
         self.assertAlmostEqual(self.ig.calculation_settings.get('ediff'), 15E-8)
