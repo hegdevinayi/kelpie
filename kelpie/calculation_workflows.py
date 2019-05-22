@@ -2,6 +2,7 @@ import os
 import shutil
 import subprocess
 import json
+
 from kelpie import io
 from kelpie.structure import Structure
 from kelpie import files_and_folders
@@ -53,8 +54,8 @@ class GenericWorkflow(object):
     @initial_structure.setter
     def initial_structure(self, initial_structure):
         if not isinstance(initial_structure, Structure):
-            error_message = 'Arugment `initial_structure` must be a `kelpie.structure.Structure object'
-            raise KelpieWorkflowError(error_message)
+            msg = 'Arugment `initial_structure` must be a `kelpie.structure.Structure object'
+            raise KelpieWorkflowError(msg)
         self._initial_structure = initial_structure
 
     @property
@@ -64,11 +65,11 @@ class GenericWorkflow(object):
     @run_location.setter
     def run_location(self, run_location):
         if not run_location:
-            error_message = 'Run location not specified'
-            raise KelpieWorkflowError(error_message)
+            msg = 'Run location not specified'
+            raise KelpieWorkflowError(msg)
         if not os.path.isdir(run_location):
-            error_message = 'Specified run location {} not found'.format(run_location)
-            raise KelpieWorkflowError(error_message)
+            msg = 'Specified run location {} not found'.format(run_location)
+            raise KelpieWorkflowError(msg)
         self._run_location = run_location
 
     @property
@@ -89,8 +90,8 @@ class GenericWorkflow(object):
     @mpi_call.setter
     def mpi_call(self, mpi_call):
         if not mpi_call:
-            error_message = 'MPI call for the calculation not specified'
-            raise KelpieWorkflowError(error_message)
+            msg = 'MPI call for the calculation not specified'
+            raise KelpieWorkflowError(msg)
         self._mpi_call = mpi_call
 
     @staticmethod
@@ -99,59 +100,90 @@ class GenericWorkflow(object):
             vasp_process = subprocess.run(mpi_call.split(), stdout=fstdout, stderr=fstderr)
         return vasp_process
 
-    def do_relaxation(self, structure=None, settings=None, mpi_call=None, **kwargs):
-        # propagate variable "n_attempts" to keep track of the number of VASP runs
-        # if this is the first do_relaxation() call, initialize "n_attempts"
-        if not hasattr(kwargs, 'n_attempts'):
-            kwargs['n_attempts'] = 0
+    @staticmethod
+    def get_vasp_errors(vasp_stdout=None):
+        if not vasp_stdout:
+            return {'empty_stdout'}
+        errors = set()
+        if 'Error reading item' in vasp_stdout:
+            errors.add('input_error')
+        if 'ZPOTRF' in vasp_stdout:
+            errors.add('zpotrf')
+        if 'SGRCON' in vasp_stdout:
+            errors.add('sgrcon')
+        if 'INVGRP' in vasp_stdout:
+            errors.add('invgrp')
+        if 'PRICEL' in vasp_stdout:
+            errors.add('pricel')
+        if 'RHOSYG' in vasp_stdout:
+            errors.add('rhosyg')
+        if 'POSMAP' in vasp_stdout:
+            errors.add('posmap')
+        if 'BRIONS problems: POTIM should be increased' in vasp_stdout:
+            errors.add('brions_potim')
+        if 'TOO FEW BANDS' in vasp_stdout:
+            errors.add('bands')
+        if 'FEXCF' in vasp_stdout:
+            errors.add('fexcf')
+        if 'FEXCP' in vasp_stdout:
+            errors.add('fexcp')
+        if 'EDDDAV' in vasp_stdout:
+            errors.add('edddav')
+        if 'not hermitian in DAV' in vasp_stdout:
+            errors.add('hermitian_dav')
+        if 'BRMIX: very serious problems' in vasp_stdout:
+            errors.add('brmix')
+        if 'IBZKPT' in vasp_stdout:
+            errors.add('ibzkpt')
+        if 'ZBRENT' in vasp_stdout:
+            errors.add('zbrent')
+        return errors
 
-        # write input files with the given structure and settings
-        ig = VaspInputGenerator(structure=structure,
-                                calculation_settings=settings,
-                                **kwargs)
-        ig.write_vasp_input_files()
-        # use the MPI call specified to run VASP
-        vasp_process = self.run_vasp(mpi_call)
-        # did the VASP run OK?
-        if vasp_process.returncode != 0:
-            error_message = 'Something went wrong with the MPI VASP run'
-            raise KelpieWorkflowError(error_message)
-        # increase "n_attempts": VASP has already been run once
-        kwargs['n_attempts'] += 1
-        # parse the calculation output and check if relevent convergence criteria are met
-        vcd = VaspCalculationData(vasprunxml_file='vasprun.xml')
-        converged = vcd.is_fully_converged(scf_thresh=settings.get('ediff'),
-                                           force_thresh=settings.get('ediffg'))
-
-        # recursively call do_relaxation() until either convergence or maximum attempts have been reached
-        if not converged and kwargs['n_attempts'] <= 5:
-            # if not converged wrt number of bands, restart with
-            # 1.2*N_bands_old or N_bands_old+4 whichever is higher
-            # make sure settings are carried over to the static calculation
-            if not vcd.is_number_of_bands_converged():
-                n_bands = max([int(vcd.n_bands * 1.2), vcd.n_bands + 4])
-                settings.update({'n_bands': n_bands})
-                self._custom_calculation_settings.update({
-                    'relaxation': {'n_bands': n_bands},
-                    'acc_std_relax': {'n_bands': n_bands},
-                    'static': {'n_bands': n_bands}
+    @staticmethod
+    def address_vasp_errors(errors=None,
+                            current_sett=None,
+                            calc_data=None):
+        new_sett = {}
+        if current_sett is None:
+            current_sett = {}
+        if not errors:
+            return new_sett
+        for error in errors:
+            if error == 'input_error':
+                msg = 'Error while VASP read the INCAR file'
+                raise KelpieWorkflowError(msg)
+            elif error in ['zpotrf', 'fexcf', 'fexcp']:
+                new_sett.update({
+                    'potim': current_sett.get(
+                            'potim',
+                            DEFAULT_VASP_INCAR_SETTINGS['relaxation']['potim']
+                    )*0.5
                 })
-            try:
-                output_structure = io.read_poscar('CONTCAR')
-            except io.KelpieIOError:
-                error_message = 'Could not read the CONTCAR file'
-                raise KelpieWorkflowError(error_message)
-            else:
-                files_and_folders.backup_files()
-                return self.do_relaxation(structure=output_structure,
-                                          settings=settings,
-                                          mpi_call=mpi_call,
-                                          **kwargs)
-        else:
-            return vcd, converged
+            elif error in ['sgrcon', 'invgrp', 'pricel', 'rhosyg', 'posmap']:
+                new_sett.update({'symprec': 1e-4})
+            elif error in ['brions']:
+                new_sett.update({
+                    'potim': current_sett.get(
+                            'potim',
+                            DEFAULT_VASP_INCAR_SETTINGS['relaxation']['potim']
+                    )*2.0
+                })
+            elif error in ['bands']:
+                n_bands = getattr(calc_data, 'n_bands')
+                n_bands = max([int(n_bands*1.2), n_bands + 4])
+                new_sett.update({'nbands': n_bands})
+            elif error in ['edddav', 'hermitian']:
+                if current_sett.get('algo', 'normal').lower()[0] == 'n':
+                    new_sett.update({'algo': 'fast'})
+            elif error in ['brmix']:
+                new_sett.update({'symprec': 1e-6})
+            elif error in ['ibzkpt', 'zbrent']:
+                pass
+        return new_sett
 
-    def do_static(self, structure=None, settings=None, mpi_call=None, **kwargs):
-        # propagate variable "n_attempts" to keep track of the number of VASP runs
+    def do_relaxation(self, structure=None, settings=None, mpi_call=None,
+                      **kwargs):
+        # propagate "n_attempts" to keep track of the number of VASP runs
         # if this is the first do_relaxation() call, initialize "n_attempts"
         if not hasattr(kwargs, 'n_attempts'):
             kwargs['n_attempts'] = 0
@@ -165,29 +197,118 @@ class GenericWorkflow(object):
         vasp_process = self.run_vasp(mpi_call)
         # did the VASP run OK?
         if vasp_process.returncode != 0:
-            error_message = 'Something went wrong with the MPI VASP run'
-            raise KelpieWorkflowError(error_message)
-        # increase "n_attempts": VASP has already been run once
+            msg = 'Something went wrong with the MPI VASP run'
+            raise KelpieWorkflowError(msg)
+        # increase "n_attempts": the number of VASP runs
         kwargs['n_attempts'] += 1
-        # parse the calculation output and check if relevent convergence criteria are met
+        # parse VASP output files to check for convergence
         vcd = VaspCalculationData(vasprunxml_file='vasprun.xml',
                                   vasp_outcar_file='OUTCAR')
-        converged = vcd.is_scf_converged(threshold=settings.get('ediff'))
-
-        # recursively call do_static() until either convergence or maximum attempts have been reached
-        max_nattempts = kwargs.get('max_nattempts', 1)
-        if not converged and kwargs['n_attempts'] < max_nattempts:
-            files_and_folders.backup_files()
-            return self.do_static(structure=structure,
+        converged = vcd.is_fully_converged(scf_thresh=settings.get('ediff'),
+                                           force_thresh=settings.get('ediffg'))
+        # if the calculation has converged or the maximum number of attempts
+        # has been reached, return the most recent calculation data
+        max_nattempts = kwargs.get('max_nattempts', 5)
+        if converged or kwargs['n_attempts'] >= max_nattempts:
+            return vcd, converged
+        # if not try to fix any errors and/or convergence issues
+        # get all runtime errors reported by VASP
+        with open('stdout.txt', 'r') as fr:
+            vasp_stdout = fr.read()
+        vasp_errors = self.get_vasp_errors(vasp_stdout=vasp_stdout)
+        if not vcd.is_number_of_bands_converged():
+            vasp_errors.add('bands')
+        # try to address any errors encountered above
+        # except when VASP didn't run at all: request user intervention
+        if any([e in vasp_errors for e in ['empty_stdout', 'input_error']]):
+            msg = 'Error running VASP. Problem with the INCAR?'
+            raise KelpieWorkflowError(msg)
+        new_sett = self.address_vasp_errors(errors=vasp_errors,
+                                            current_sett=settings,
+                                            calc_data=vcd)
+        settings.update(new_sett)
+        # make sure settings related to the VASP NBANDS tag are carried over
+        # to the all other calculation settings
+        if 'nbands' in new_sett:
+            for calc_type in DEFAULT_VASP_INCAR_SETTINGS:
+                if calc_type not in self._custom_calculation_settings:
+                    self._custom_calculation_settings[calc_type] = {
+                        'nbands': new_sett.get('nbands')
+                    }
+                else:
+                    self._custom_calculation_settings[calc_type].update({
+                        'nbands': new_sett.get('nbands')
+                    })
+        # restart the relaxation with the final structure from the previous
+        # attempt
+        try:
+            prev_structure = io.read_poscar('CONTCAR')
+        except io.KelpieIOError:
+            try:
+                prev_structure = io.read_poscar('POSCAR')
+            except io.KelpieIOError:
+                msg = 'Error while reading the previous CONTCAR/POSCAR'
+                raise KelpieWorkflowError(msg)
+        files_and_folders.backup_files()
+        return self.do_relaxation(structure=prev_structure,
                                   settings=settings,
                                   mpi_call=mpi_call,
                                   **kwargs)
-        else:
+
+    def do_static(self, structure=None, settings=None, mpi_call=None, **kwargs):
+        # propagate "n_attempts" to keep track of the number of VASP runs
+        # if this is the first do_relaxation() call, initialize "n_attempts"
+        if not hasattr(kwargs, 'n_attempts'):
+            kwargs['n_attempts'] = 0
+
+        # write input files with the given structure and settings
+        ig = VaspInputGenerator(structure=structure,
+                                calculation_settings=settings,
+                                **kwargs)
+        ig.write_vasp_input_files()
+        # use the MPI call specified to run VASP
+        vasp_process = self.run_vasp(mpi_call)
+        # did the VASP run OK?
+        if vasp_process.returncode != 0:
+            msg = 'Something went wrong with the MPI VASP run'
+            raise KelpieWorkflowError(msg)
+        # increase "n_attempts": the number of VASP runs
+        kwargs['n_attempts'] += 1
+        # parse VASP output files to check for convergence
+        vcd = VaspCalculationData(vasprunxml_file='vasprun.xml',
+                                  vasp_outcar_file='OUTCAR')
+        converged = vcd.is_fully_converged(scf_thresh=settings.get('ediff'))
+        # if the calculation has converged or the maximum number of attempts
+        # has been reached, return the most recent calculation data
+        max_nattempts = kwargs.get('max_nattempts', 2)
+        if converged or kwargs['n_attempts'] >= max_nattempts:
             return vcd, converged
+        # if not try to fix any errors and/or convergence issues
+        # get all runtime errors reported by VASP
+        with open('stdout.txt', 'r') as fr:
+            vasp_stdout = fr.read()
+        vasp_errors = self.get_vasp_errors(vasp_stdout=vasp_stdout)
+        if not vcd.is_number_of_bands_converged():
+            vasp_errors.add('bands')
+        # try to address any errors encountered above
+        # except when VASP didn't run at all: request user intervention
+        if any([e in vasp_errors for e in ['empty_stdout', 'input_error']]):
+            msg = 'Error running VASP. Problem with the INCAR?'
+            raise KelpieWorkflowError(msg)
+        new_sett = self.address_vasp_errors(errors=vasp_errors,
+                                            current_sett=settings,
+                                            calc_data=vcd)
+        settings.update(new_sett)
+        # restart the static calculation
+        files_and_folders.backup_files()
+        return self.do_static(structure=structure,
+                              settings=settings,
+                              mpi_call=mpi_call,
+                              **kwargs)
 
 
 class RelaxationWorkflow(GenericWorkflow):
-    """Class with workflow for a relaxation run followed by a final static run."""
+    """Class with workflow for a relaxation run followed by a static run."""
 
     def __init__(self,
                  initial_structure=None,
@@ -230,8 +351,8 @@ class RelaxationWorkflow(GenericWorkflow):
             json.dump(vcd.as_dict(), fw, indent=2)
 
         if not converged:
-            error_message = 'Error while performing the relaxation run(s)'
-            raise KelpieWorkflowError(error_message)
+            msg = 'Error while performing the relaxation run(s)'
+            raise KelpieWorkflowError(msg)
 
         relaxation_output_structure = os.path.join(relaxation_dir, 'CONTCAR')
         initial_structure = io.read_poscar(relaxation_output_structure)
@@ -251,8 +372,8 @@ class RelaxationWorkflow(GenericWorkflow):
             json.dump(vcd.as_dict(), fw, indent=2)
 
         if not converged:
-            error_message = 'Error while performing the final static run'
-            raise KelpieWorkflowError(error_message)
+            msg = 'Error while performing the final static run'
+            raise KelpieWorkflowError(msg)
 
 
 class AccStdRelaxWorkflow(GenericWorkflow):
@@ -303,8 +424,8 @@ class AccStdRelaxWorkflow(GenericWorkflow):
             json.dump(vcd.as_dict(), fw, indent=2)
 
         if not converged:
-            error_message = 'Error while performing the relaxation run(s)'
-            raise KelpieWorkflowError(error_message)
+            msg = 'Error while performing the relaxation run(s)'
+            raise KelpieWorkflowError(msg)
 
 
 class ScForcesWorkflow(GenericWorkflow):
@@ -341,6 +462,6 @@ class ScForcesWorkflow(GenericWorkflow):
             json.dump(vcd.as_dict(), fw, indent=2)
 
         if not converged:
-            error_message = 'Error during (scf) calculation of forces'
-            raise KelpieWorkflowError(error_message)
+            msg = 'Error during (scf) calculation of forces'
+            raise KelpieWorkflowError(msg)
 
