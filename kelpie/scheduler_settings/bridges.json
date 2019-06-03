@@ -1,0 +1,14 @@
+{
+  "submit_cmd": "sbatch",
+  "mpi_call": "mpirun -np {n_mpi} {exe}",
+  "job-name": "kelpie_graze",
+  "partition": "RM",
+  "account": "mr4s8rp",
+  "nodes": 1,
+  "walltime": "08:00:00",
+  "output": "job.oe",
+  "modules": [
+  ],
+  "exe": "vasp_std",
+  "n_mpi_per_node": 28
+}
